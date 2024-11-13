@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,73 +12,72 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-var JwtKey = []byte(os.Getenv("API_SECRET"))
-
-type Claims struct {
-	Email string     `json:"email"`
-	Role  model.Role `json:"string"`
-	jwt.RegisteredClaims
-}
-
-func GenerateToken(email string, role model.Role) (string, error) {
-	expirationTime := time.Now().Add(1 * time.Hour)
-	claims := &Claims{
-		Email: email,
-		Role:  role,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expirationTime),
-		},
+func GenerateToken(user model.User) (string, error) {
+	payload := jwt.MapClaims{
+		"email":      user.Email,
+		"authorized": true,
+		"exp":        time.Now().Add(time.Minute * 1).Unix(),
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(JwtKey)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
+	tokenString, err := token.SignedString([]byte(os.Getenv("API_SECRET")))
+	if err != nil {
+		log.Println("Error signing the token:", err)
+		return "", err
+	}
+
+	return tokenString, nil
 }
 
-func ValidateToken(r *http.Request) error {
-	jwtToken := GetToken(r)
-	if jwtToken == "" {
+func ValidateToken(r *http.Request) (model.User, error) {
+	token := GetToken(r)
+	if token == "" {
 		log.Println("No token found in request")
-		return fmt.Errorf("no token found")
+		return model.User{}, fmt.Errorf("no token found in request")
 	}
 
-	token, err := jwt.Parse(jwtToken, func(f *jwt.Token) (interface{}, error) {
-		if _, ok := f.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", f.Header["alg"])
-		}
-		return []byte(os.Getenv("API_SECRET")), nil
-	})
-
+	jwtToken, err := jwt.Parse(token, validateMethodAndGetSecret)
 	if err != nil {
-		log.Println("Error parsing token:", err)
-		return err
+		log.Printf("Token not valid: %v\n", err)
+		return model.User{}, fmt.Errorf("invalid token: %w", err)
 	}
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		Pretty(claims)
-		return nil
+	userData, ok := jwtToken.Claims.(jwt.MapClaims)
+	if !ok || !jwtToken.Valid {
+		log.Println("Unable to retrieve payload information or token is invalid")
+		return model.User{}, fmt.Errorf("invalid token claims")
 	}
 
-	log.Println("Invalid token")
-	return fmt.Errorf("invalid token")
-}
-
-func Pretty(data interface{}) {
-	pretty, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		log.Println(err)
+	email, ok := userData["email"].(string)
+	if !ok {
+		log.Println("Email field missing or not a string in token claims")
+		return model.User{}, fmt.Errorf("email field is missing or invalid in token claims")
 	}
-	fmt.Println(string(pretty))
+
+	response := model.User{
+		Email: email,
+	}
+
+	return response, nil
 }
 
 func GetToken(r *http.Request) string {
 	params := r.URL.Query()
-	token := params.Get("token")
-	if token != "" {
+
+	if token := params.Get("token"); token != "" {
 		return token
 	}
-	tokenString := r.Header.Get("Authorization")
-	if len(strings.Split(tokenString, " ")) == 2 {
+
+	if tokenString := r.Header.Get("Authorization"); len(strings.Split(tokenString, " ")) == 2 {
 		return strings.Split(tokenString, " ")[1]
 	}
 	return ""
+}
+
+func validateMethodAndGetSecret(token *jwt.Token) (any, error) {
+	_, ok := token.Method.(*jwt.SigningMethodHMAC)
+	if !ok {
+		return nil, fmt.Errorf("method not valid")
+	}
+	return []byte(os.Getenv("API_SECRET")), nil
 }

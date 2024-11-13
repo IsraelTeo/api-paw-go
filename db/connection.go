@@ -19,7 +19,15 @@ func Connection() error {
 }
 
 func MigrateDataBase() error {
-	if err := GDB.AutoMigrate(&model.Customer{}, &model.Employee{}, &model.Pet{}, &model.User{}); err != nil {
+	err := GDB.AutoMigrate(
+		&model.Customer{},
+		&model.Employee{},
+		&model.Pet{},
+		&model.User{},
+		&model.Role{},
+	)
+
+	if err != nil {
 		return err
 	}
 	return nil

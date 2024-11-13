@@ -1,11 +1,9 @@
 package model
 
-type Role string
+import "gorm.io/gorm"
 
-const (
-	ADMIN        Role = "ADMIN"
-	EMPLOYEE     Role = "EMPLOYEE"
-	VETERINARIAN Role = "VETERINARIAN"
-	RECEPTIONIST Role = "RECEPTIONIST"
-	ASSISTANT    Role = "ASSISTANT"
-)
+type Role struct {
+	gorm.Model
+	ID   uint   `json:"id" gorm:"primary_key;unique;auto_increment"`
+	Name string `json:"name" gorm:"size:100;unique;not null;size:20"`
+}
