@@ -30,30 +30,35 @@ func GenerateToken(user model.User) (string, error) {
 }
 
 func ValidateToken(r *http.Request) (model.User, error) {
+	// Obtiene el token desde la solicitud
 	token := GetToken(r)
 	if token == "" {
 		log.Println("No token found in request")
 		return model.User{}, fmt.Errorf("no token found in request")
 	}
 
+	// Valida el token JWT
 	jwtToken, err := jwt.Parse(token, validateMethodAndGetSecret)
 	if err != nil {
 		log.Printf("Token not valid: %v\n", err)
 		return model.User{}, fmt.Errorf("invalid token: %w", err)
 	}
 
+	// Verifica si el token tiene el tipo de reclamaciones adecuado
 	userData, ok := jwtToken.Claims.(jwt.MapClaims)
 	if !ok || !jwtToken.Valid {
 		log.Println("Unable to retrieve payload information or token is invalid")
 		return model.User{}, fmt.Errorf("invalid token claims")
 	}
 
+	// Intenta extraer el campo "email" de las reclamaciones
 	email, ok := userData["email"].(string)
 	if !ok {
 		log.Println("Email field missing or not a string in token claims")
 		return model.User{}, fmt.Errorf("email field is missing or invalid in token claims")
 	}
 
+	// Crea la respuesta de usuario
 	response := model.User{
 		Email: email,
 	}
@@ -63,7 +68,6 @@ func ValidateToken(r *http.Request) (model.User, error) {
 
 func GetToken(r *http.Request) string {
 	params := r.URL.Query()
-
 	if token := params.Get("token"); token != "" {
 		return token
 	}
@@ -71,6 +75,7 @@ func GetToken(r *http.Request) string {
 	if tokenString := r.Header.Get("Authorization"); len(strings.Split(tokenString, " ")) == 2 {
 		return strings.Split(tokenString, " ")[1]
 	}
+
 	return ""
 }
 
@@ -79,5 +84,6 @@ func validateMethodAndGetSecret(token *jwt.Token) (any, error) {
 	if !ok {
 		return nil, fmt.Errorf("method not valid")
 	}
+
 	return []byte(os.Getenv("API_SECRET")), nil
 }
