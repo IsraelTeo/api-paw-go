@@ -2,16 +2,17 @@ package auth
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/IsraelTeo/api-paw/db"
 	"github.com/IsraelTeo/api-paw/model"
 	"github.com/IsraelTeo/api-paw/payload"
 	"github.com/golang-jwt/jwt"
-	"gorm.io/gorm"
+	"golang.org/x/crypto/bcrypt"
 )
 
-type Cretendials struct {
+type Credentials struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
@@ -22,38 +23,51 @@ type Claims struct {
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
-	var credentials Cretendials
+	var credentials Credentials
 	if err := json.NewDecoder(r.Body).Decode(&credentials); err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Bad request", nil)
 		payload.ResponseJSON(w, http.StatusBadRequest, response)
 		return
 	}
 
-	user := model.User{}
-	if err := db.GDB.Where("email = ?", credentials.Email).First(&user).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			response := payload.NewResponse(payload.MessageTypeError, "User not found", nil)
-			payload.ResponseJSON(w, http.StatusNotFound, response)
-		} else {
-			response := payload.NewResponse(payload.MessageTypeError, "Error when querying user", nil)
-			payload.ResponseJSON(w, http.StatusInternalServerError, response)
-		}
-		return
-	}
-
-	if err := model.VerifyPassword(user.Password, credentials.Password); err != nil {
-		response := payload.NewResponse(payload.MessageTypeError, "Invalid password", nil)
+	// Se elimina el parámetro 'credentials' y solo se pasan el email y la contraseña
+	userData, err := userByEmailAndPassword(credentials.Email, credentials.Password)
+	if err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Invalid email or password", nil)
 		payload.ResponseJSON(w, http.StatusUnauthorized, response)
 		return
 	}
 
-	token, err := GenerateToken(user)
+	token, err := GenerateToken(userData)
 	if err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Error generating token", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
 		return
 	}
 
-	response := payload.NewResponse(payload.MessageTypeSuccess, "Authentication success", token)
+	responseMap := map[string]interface{}{
+		"role":  userData.IsAdmin,
+		"token": token, // Corregido: "token: " => "token"
+	}
+
+	response := payload.NewResponse(payload.MessageTypeSuccess, "Login successful", responseMap)
 	payload.ResponseJSON(w, http.StatusOK, response)
+}
+
+func userByEmailAndPassword(email, password string) (model.User, error) {
+	user := model.User{}
+	// Buscar al usuario por su email
+	if err := db.GDB.Where("email = ?", email).First(&user).Error; err != nil {
+		log.Printf("email invalid: %v", err)
+		return user, err
+	}
+
+	// Comparar la contraseña ingresada con la contraseña cifrada almacenada en la base de datos
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		log.Printf("Password invalid: %v", err)
+		return user, err
+	}
+
+	return user, nil
 }

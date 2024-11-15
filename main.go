@@ -5,13 +5,13 @@ import (
 	"net/http"
 
 	"github.com/IsraelTeo/api-paw/db"
-	"github.com/gorilla/mux"
+	"github.com/IsraelTeo/api-paw/route"
 	"github.com/joho/godotenv"
 )
 
 func main() {
 
-	r := mux.NewRouter()
+	r := route.Init()
 
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loanding .env main")

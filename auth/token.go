@@ -16,7 +16,9 @@ func GenerateToken(user model.User) (string, error) {
 	payload := jwt.MapClaims{
 		"email":      user.Email,
 		"authorized": true,
-		"exp":        time.Now().Add(time.Minute * 1).Unix(),
+		"is_admin":   user.IsAdmin,
+		"iat":        time.Now().Unix(),
+		"exp":        time.Now().Add(time.Hour * 2).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
@@ -52,15 +54,16 @@ func ValidateToken(r *http.Request) (model.User, error) {
 	}
 
 	// Intenta extraer el campo "email" de las reclamaciones
-	email, ok := userData["email"].(string)
+	_, ok = userData["email"].(string)
 	if !ok {
 		log.Println("Email field missing or not a string in token claims")
 		return model.User{}, fmt.Errorf("email field is missing or invalid in token claims")
 	}
 
-	// Crea la respuesta de usuario
+	// Crea la respuesta de usuario, ahora con el rol
 	response := model.User{
-		Email: email,
+		Email:   userData["email"].(string),
+		IsAdmin: userData["is_admin"].(bool),
 	}
 
 	return response, nil

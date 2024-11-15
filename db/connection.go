@@ -24,7 +24,7 @@ func MigrateDataBase() error {
 		&model.Employee{},
 		&model.Pet{},
 		&model.User{},
-		&model.Role{},
+		&model.EmployeeType{},
 	)
 
 	if err != nil {

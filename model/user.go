@@ -7,10 +7,9 @@ import (
 
 type User struct {
 	gorm.Model
-	ID       uint   `json:"id" gorm:"primary_key;auto_increment"`
 	Email    string `json:"email" gorm:"size:100;unique;not_null"`
 	Password string `json:"password" gorm:"size:100"`
-	Role     Role   `json:"role"`
+	IsAdmin  bool   `json:"is_admin" gorm:"dafault:false"`
 }
 
 func VerifyPassword(passwordHashed string, password string) error {

@@ -14,7 +14,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetCustomerById(w http.ResponseWriter, r *http.Request) {
+func GetEmployeeById(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		response := payload.NewResponse(payload.MessageTypeError, "Invalid Method", nil)
 		payload.ResponseJSON(w, http.StatusMethodNotAllowed, response)
@@ -23,72 +23,85 @@ func GetCustomerById(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	id := params["id"]
-	customer := model.Customer{}
-	if err := db.GDB.First(&customer, id).Error; err != nil {
-		response := payload.NewResponse(payload.MessageTypeError, "Customer was not found", nil)
+	employee := model.Employee{}
+	if err := db.GDB.First(&employee, id).Error; err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Employee was not found", nil)
 		payload.ResponseJSON(w, http.StatusNotFound, response)
 		return
 	}
 
-	response := payload.NewResponse(payload.MessageTypeSuccess, "Customer found", customer)
+	response := payload.NewResponse(payload.MessageTypeSuccess, "Employee found", employee)
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
-func GetAllCustomers(w http.ResponseWriter, r *http.Request) {
+func GetAllEmployees(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		response := payload.NewResponse(payload.MessageTypeError, "Method get not permit", nil)
 		payload.ResponseJSON(w, http.StatusMethodNotAllowed, response)
 		return
 	}
 
-	var customers []model.Customer
-	if err := db.GDB.Find(&customers).Error; err != nil {
-		response := payload.NewResponse(payload.MessageTypeError, "Customers not found", nil)
+	var employees []model.Employee
+	if err := db.GDB.Find(&employees).Error; err != nil {
+		log.Printf("employees list not found %v:", err)
+		response := payload.NewResponse(payload.MessageTypeError, "Employees not found", nil)
 		payload.ResponseJSON(w, http.StatusNotFound, response)
 		return
 	}
 
-	if len(customers) == 0 {
-		response := payload.NewResponse(payload.MessageTypeSuccess, "Customers List empty", nil)
+	if len(employees) == 0 {
+		response := payload.NewResponse(payload.MessageTypeSuccess, "Employees List empty", nil)
 		payload.ResponseJSON(w, http.StatusNoContent, response)
 		return
 	}
 
-	response := payload.NewResponse(payload.MessageTypeSuccess, "Customers found", customers)
-	payload.ResponseJSON(w, http.StatusNoContent, response)
+	response := payload.NewResponse(payload.MessageTypeSuccess, "Employees found", employees)
+	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
-func SaveCustomer(w http.ResponseWriter, r *http.Request) {
+func SaveEmployee(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		response := payload.NewResponse(payload.MessageTypeError, "Method post not permit", nil)
 		payload.ResponseJSON(w, http.StatusMethodNotAllowed, response)
 		return
 	}
 
-	customer := model.Customer{}
-	if err := json.NewDecoder(r.Body).Decode(&customer); err != nil {
+	employee := model.Employee{}
+	if err := json.NewDecoder(r.Body).Decode(&employee); err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Bad request: invalid JSON data", nil)
 		payload.ResponseJSON(w, http.StatusBadRequest, response)
 		return
 	}
 
-	if err := db.GDB.Where("email = ?", customer.Email).First(&customer).Error; err == nil {
+	if err := db.GDB.Where("dni = ?", employee.Email).First(&employee).Error; err == nil {
+		response := payload.NewResponse(payload.MessageTypeError, "DNI already exists", nil)
+		payload.ResponseJSON(w, http.StatusConflict, response)
+		return
+	}
+
+	if err := db.GDB.Where("email = ?", employee.Email).First(&employee).Error; err == nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Email already in use", nil)
 		payload.ResponseJSON(w, http.StatusConflict, response)
 		return
 	}
 
-	if result := db.GDB.Create(&customer); result.Error != nil {
+	if err := db.GDB.Where("phone_number = ?", employee.Email).First(&employee).Error; err == nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Phone number already exists", nil)
+		payload.ResponseJSON(w, http.StatusConflict, response)
+		return
+	}
+
+	if result := db.GDB.Create(&employee); result.Error != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Internal Server Error", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
 		return
 	}
 
-	response := payload.NewResponse(payload.MessageTypeSuccess, "Customer created successfusly", nil)
+	response := payload.NewResponse(payload.MessageTypeSuccess, "Employee created successfusly", nil)
 	payload.ResponseJSON(w, http.StatusCreated, response)
 }
 
-func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
+func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		response := payload.NewResponse(payload.MessageTypeError, "Method put not permit", nil)
 		payload.ResponseJSON(w, http.StatusMethodNotAllowed, response)
@@ -106,12 +119,12 @@ func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Buscar el empleado en la base de datos
-	customer := model.Customer{}
-	if err := db.GDB.First(&customer, uint(id)).Error; err != nil {
+	employee := model.Employee{}
+	if err := db.GDB.First(&employee, uint(id)).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			response := payload.NewResponse(payload.MessageTypeError, "Customer not found", nil)
+			response := payload.NewResponse(payload.MessageTypeError, "Employee not found", nil)
 			payload.ResponseJSON(w, http.StatusNotFound, response)
-			log.Printf("customer not found: %v", err)
+			log.Printf("employee not found: %v", err)
 			return
 		}
 
@@ -121,18 +134,19 @@ func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&customer); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&employee); err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Bad request", nil)
 		payload.ResponseJSON(w, http.StatusBadRequest, response)
+		log.Printf("bad request %v:", err)
 		return
 	}
 
-	db.GDB.Save(&customer)
-	response := payload.NewResponse(payload.MessageTypeSuccess, "Customer updated successfull", customer)
+	db.GDB.Save(&employee)
+	response := payload.NewResponse(payload.MessageTypeSuccess, "Employee updated successfull", employee)
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
-func DeleteCustomer(w http.ResponseWriter, r *http.Request) {
+func DeleteEmployee(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		response := payload.NewResponse(payload.MessageTypeError, "Method delete not permit", nil)
 		payload.ResponseJSON(w, http.StatusMethodNotAllowed, response)
@@ -150,12 +164,12 @@ func DeleteCustomer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Buscar el empleado en la base de datos
-	customer := model.Customer{}
-	if err := db.GDB.First(&customer, uint(id)).Error; err != nil {
+	employee := model.Employee{}
+	if err := db.GDB.First(&employee, uint(id)).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			response := payload.NewResponse(payload.MessageTypeError, "Customer not found", nil)
+			response := payload.NewResponse(payload.MessageTypeError, "Employee not found", nil)
 			payload.ResponseJSON(w, http.StatusNotFound, response)
-			log.Printf("customer not found: %v", err)
+			log.Printf("employee not found: %v", err)
 			return
 		}
 
@@ -165,7 +179,7 @@ func DeleteCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db.GDB.Delete(&customer)
-	response := payload.NewResponse(payload.MessageTypeSuccess, "Customer deleted successfull", nil)
+	db.GDB.Delete(&employee)
+	response := payload.NewResponse(payload.MessageTypeSuccess, "Employee deleted successfull", nil)
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
