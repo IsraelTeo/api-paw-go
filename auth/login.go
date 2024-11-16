@@ -30,7 +30,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Se elimina el parámetro 'credentials' y solo se pasan el email y la contraseña
 	userData, err := userByEmailAndPassword(credentials.Email, credentials.Password)
 	if err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Invalid email or password", nil)
@@ -47,7 +46,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	responseMap := map[string]interface{}{
 		"role":  userData.IsAdmin,
-		"token": token, // Corregido: "token: " => "token"
+		"token": token,
 	}
 
 	response := payload.NewResponse(payload.MessageTypeSuccess, "Login successful", responseMap)
@@ -56,13 +55,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 func userByEmailAndPassword(email, password string) (model.User, error) {
 	user := model.User{}
-	// Buscar al usuario por su email
 	if err := db.GDB.Where("email = ?", email).First(&user).Error; err != nil {
 		log.Printf("email invalid: %v", err)
 		return user, err
 	}
 
-	// Comparar la contraseña ingresada con la contraseña cifrada almacenada en la base de datos
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		log.Printf("Password invalid: %v", err)

@@ -14,6 +14,18 @@ import (
 	"gorm.io/gorm"
 )
 
+// GetPetById godoc
+// @Summary Get a pet by ID
+// @Description Get a pet by its ID
+// @Tags pets
+// @Accept json
+// @Produce json
+// @Param id path int true "Pet ID"
+// @Success 200 {object} payload.Response{data=model.Pet}
+// @Failure 400 {object} payload.Response
+// @Failure 404 {object} payload.Response
+// @Failure 405 {object} payload.Response
+// @Router /pet/{id} [get]
 func GetPetById(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		response := payload.NewResponse(payload.MessageTypeError, "Invalid Method", nil)
@@ -34,6 +46,16 @@ func GetPetById(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
+// GetAllPets godoc
+// @Summary Get all pets
+// @Description Get all pets from the database
+// @Tags pets
+// @Accept json
+// @Produce json
+// @Success 200 {object} payload.Response{data=[]model.Pet}
+// @Failure 400 {object} payload.Response
+// @Failure 404 {object} payload.Response
+// @Router /pets [get]
 func GetAllPets(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		response := payload.NewResponse(payload.MessageTypeError, "Method get not permit", nil)
@@ -58,6 +80,17 @@ func GetAllPets(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusNoContent, response)
 }
 
+// SavePet godoc
+// @Summary Save a new pet
+// @Description Add a new pet to the database
+// @Tags pets
+// @Accept json
+// @Produce json
+// @Param pet body model.Pet true "New Pet"
+// @Success 201 {object} payload.Response
+// @Failure 400 {object} payload.Response
+// @Failure 405 {object} payload.Response
+// @Router /pet [post]
 func SavePet(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		response := payload.NewResponse(payload.MessageTypeError, "Method post not permit", nil)
@@ -82,6 +115,19 @@ func SavePet(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusCreated, response)
 }
 
+// UpdatePet godoc
+// @Summary Update an existing pet
+// @Description Update the details of an existing pet
+// @Tags pets
+// @Accept json
+// @Produce json
+// @Param id path int true "Pet ID"
+// @Param pet body model.Pet true "Updated Pet"
+// @Success 200 {object} payload.Response{data=model.Pet}
+// @Failure 400 {object} payload.Response
+// @Failure 404 {object} payload.Response
+// @Failure 500 {object} payload.Response
+// @Router /pet/{id} [put]
 func UpdatePet(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		response := payload.NewResponse(payload.MessageTypeError, "Method put not permit", nil)
@@ -120,6 +166,18 @@ func UpdatePet(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
+// DeletePet godoc
+// @Summary Delete a pet
+// @Description Remove a pet from the database
+// @Tags pets
+// @Accept json
+// @Produce json
+// @Param id path int true "Pet ID"
+// @Success 200 {object} payload.Response
+// @Failure 400 {object} payload.Response
+// @Failure 404 {object} payload.Response
+// @Failure 500 {object} payload.Response
+// @Router /pet/{id} [delete]
 func DeletePet(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		response := payload.NewResponse(payload.MessageTypeError, "Method delete not permit", nil)
@@ -137,7 +195,6 @@ func DeletePet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Buscar el empleado en la base de datos
 	pet := model.Pet{}
 	if err := db.GDB.First(&pet, uint(id)).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

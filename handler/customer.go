@@ -24,7 +24,7 @@ func GetCustomerById(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 	customer := model.Customer{}
-	if err := db.GDB.First(&customer, id).Error; err != nil {
+	if err := db.GDB.Preload("Pets").First(&customer, id).Error; err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Customer was not found", nil)
 		payload.ResponseJSON(w, http.StatusNotFound, response)
 		return
@@ -42,8 +42,8 @@ func GetAllCustomers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var customers []model.Customer
-	if err := db.GDB.Find(&customers).Error; err != nil {
-		response := payload.NewResponse(payload.MessageTypeError, "Customers not found", nil)
+	if err := db.GDB.Preload("Pets").Find(&customers).Error; err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Customer was not found", nil)
 		payload.ResponseJSON(w, http.StatusNotFound, response)
 		return
 	}
@@ -55,7 +55,7 @@ func GetAllCustomers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := payload.NewResponse(payload.MessageTypeSuccess, "Customers found", customers)
-	payload.ResponseJSON(w, http.StatusNoContent, response)
+	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
 func SaveCustomer(w http.ResponseWriter, r *http.Request) {
@@ -97,7 +97,7 @@ func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	idStr := params["id"]
-	id, err := strconv.Atoi(idStr) // Convertir `id` a uint
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Invalid ID format", nil)
 		payload.ResponseJSON(w, http.StatusBadRequest, response)
@@ -105,7 +105,6 @@ func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Buscar el empleado en la base de datos
 	customer := model.Customer{}
 	if err := db.GDB.First(&customer, uint(id)).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -141,15 +140,13 @@ func DeleteCustomer(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	idStr := params["id"]
-	id, err := strconv.Atoi(idStr) // Convertir `id` a uint
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Invalid ID format", nil)
 		payload.ResponseJSON(w, http.StatusBadRequest, response)
 		log.Printf("invalid ID format: %v", err)
 		return
 	}
-
-	// Buscar el empleado en la base de datos
 	customer := model.Customer{}
 	if err := db.GDB.First(&customer, uint(id)).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -162,6 +159,13 @@ func DeleteCustomer(w http.ResponseWriter, r *http.Request) {
 		response := payload.NewResponse(payload.MessageTypeError, "Database error", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
 		log.Printf("database error: %v", err)
+		return
+	}
+
+	if err := db.GDB.Where("customer_id = ?", customer.ID).Delete(&model.Pet{}).Error; err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Failed to delete associated pets", nil)
+		payload.ResponseJSON(w, http.StatusInternalServerError, response)
+		log.Printf("failed to delete associated pets: %v", err)
 		return
 	}
 

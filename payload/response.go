@@ -11,21 +11,21 @@ const (
 	Message            = "message"
 )
 
-type response struct {
+type Response struct {
 	MessageType string      `json:"message_type"`
 	Message     string      `json:"message"`
 	Data        interface{} `json:"data"`
 }
 
-func NewResponse(messageType, message string, data interface{}) response {
-	return response{
+func NewResponse(messageType, message string, data interface{}) Response {
+	return Response{
 		MessageType: messageType,
 		Message:     message,
 		Data:        data,
 	}
 }
 
-func ResponseJSON(w http.ResponseWriter, statusCode int, rep response) {
+func ResponseJSON(w http.ResponseWriter, statusCode int, rep Response) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	err := json.NewEncoder(w).Encode(&rep)
