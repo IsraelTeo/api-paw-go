@@ -3,7 +3,7 @@ package db
 import (
 	"os"
 
-	"github.com/IsraelTeo/api-paw/model"
+	"github.com/IsraelTeo/api-paw-go/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )

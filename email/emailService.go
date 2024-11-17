@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/smtp"
 
-	"github.com/IsraelTeo/api-paw/config"
+	"github.com/IsraelTeo/api-paw-go/config"
 )
 
 type EmailService struct {

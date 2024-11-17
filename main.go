@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/IsraelTeo/api-paw/db"
-	"github.com/IsraelTeo/api-paw/route"
+	"github.com/IsraelTeo/api-paw-go/db"
+	"github.com/IsraelTeo/api-paw-go/route"
 	"github.com/joho/godotenv"
 )
 

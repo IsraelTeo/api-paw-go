@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/IsraelTeo/api-paw/db"
-	"github.com/IsraelTeo/api-paw/model"
-	"github.com/IsraelTeo/api-paw/payload"
+	"github.com/IsraelTeo/api-paw-go/db"
+	"github.com/IsraelTeo/api-paw-go/model"
+	"github.com/IsraelTeo/api-paw-go/payload"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
 )
@@ -131,6 +131,17 @@ func SaveEmployee(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusCreated, response)
 }
 
+// UpdateEmployee maneja la solicitud HTTP PUT para actualizar un empleado existente.
+// @Description Actualiza los datos de un empleado existente en el sistema.
+// @Accept json
+// @Produce json
+// @Param id path int true "ID del empleado"
+// @Param employee body model.Employee true "Empleado actualizado"
+// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=model.Employee} "Empleado actualizado"
+// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "ID inválido o formato incorrecto"
+// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Empleado no encontrado"
+// @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
+// @Router /ai/v1/employee/{id} [put]
 func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		response := payload.NewResponse(payload.MessageTypeError, "Method put not permit", nil)
@@ -175,6 +186,16 @@ func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
+// DeleteEmployee maneja la solicitud HTTP DELETE para eliminar un empleado por su ID.
+// @Description Elimina un empleado especificado por su ID.
+// @Accept json
+// @Produce json
+// @Param id path int true "ID del empleado"
+// @Success 200 {object} payload.Response{MessageType=string, Message=string} "Empleado eliminado"
+// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "ID inválido"
+// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Empleado no encontrado"
+// @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
+// @Router /api/v1/employee/{id} [delete]
 func DeleteEmployee(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		response := payload.NewResponse(payload.MessageTypeError, "Method delete not permit", nil)

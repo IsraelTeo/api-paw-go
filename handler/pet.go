@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/IsraelTeo/api-paw/db"
-	"github.com/IsraelTeo/api-paw/model"
-	"github.com/IsraelTeo/api-paw/payload"
+	"github.com/IsraelTeo/api-paw-go/db"
+	"github.com/IsraelTeo/api-paw-go/model"
+	"github.com/IsraelTeo/api-paw-go/payload"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
 )

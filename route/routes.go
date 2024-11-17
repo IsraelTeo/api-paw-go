@@ -1,9 +1,9 @@
 package route
 
 import (
-	"github.com/IsraelTeo/api-paw/auth"
-	"github.com/IsraelTeo/api-paw/handler"
-	"github.com/IsraelTeo/api-paw/middelware"
+	"github.com/IsraelTeo/api-paw-go/auth"
+	"github.com/IsraelTeo/api-paw-go/handler"
+	"github.com/IsraelTeo/api-paw-go/middelware"
 	"github.com/gorilla/mux"
 )
 

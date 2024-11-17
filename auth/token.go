@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/IsraelTeo/api-paw/model"
+	"github.com/IsraelTeo/api-paw-go/model"
 	"github.com/golang-jwt/jwt/v4"
 )
 

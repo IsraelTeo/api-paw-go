@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/IsraelTeo/api-paw/db"
-	"github.com/IsraelTeo/api-paw/model"
-	"github.com/IsraelTeo/api-paw/payload"
+	"github.com/IsraelTeo/api-paw-go/db"
+	"github.com/IsraelTeo/api-paw-go/model"
+	"github.com/IsraelTeo/api-paw-go/payload"
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -24,7 +24,7 @@ import (
 // @Failure 400 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
 // @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Usuario no encontrado"
 // @Failure 405 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
-// @Router /users/{id} [get]
+// @Router /api/v1/user/{id} [get]
 func GetUserById(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		response := payload.NewResponse(payload.MessageTypeError, "Invalid Method", nil)
@@ -53,7 +53,7 @@ func GetUserById(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Usuarios no encontrados"
 // @Failure 405 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
 // @Failure 204 {object} payload.Response{MessageType=string, Message=string} "Lista de usuarios vacía"
-// @Router /users [get]
+// @Router /api/v1/users [get]
 func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		response := payload.NewResponse(payload.MessageTypeError, "Method get not permit", nil)
@@ -87,7 +87,7 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 {object} payload.Response{MessageType=string, Message=string} "Solicitud incorrecta o JSON inválido"
 // @Failure 409 {object} payload.Response{MessageType=string, Message=string} "Correo electrónico ya en uso"
 // @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
-// @Router /users [post]
+// @Router /auth/sign-up [post]
 func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		response := payload.NewResponse(payload.MessageTypeError, "Method post not permit", nil)
@@ -142,7 +142,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 {object} payload.Response{MessageType=string, Message=string} "ID inválido o formato incorrecto"
 // @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Usuario no encontrado"
 // @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
-// @Router /users/{id} [put]
+// @Router /api/v1/user/{id} [put]
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		response := payload.NewResponse(payload.MessageTypeError, "Method put not permit", nil)
@@ -189,7 +189,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 {object} payload.Response{MessageType=string, Message=string} "ID inválido"
 // @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Usuario no encontrado"
 // @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
-// @Router /users/{id} [delete]
+// @Router /api/v1/user/{id} [delete]
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		response := payload.NewResponse(payload.MessageTypeError, "Method delete not permit", nil)

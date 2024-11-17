@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/IsraelTeo/api-paw/db"
-	"github.com/IsraelTeo/api-paw/model"
-	"github.com/IsraelTeo/api-paw/payload"
+	"github.com/IsraelTeo/api-paw-go/db"
+	"github.com/IsraelTeo/api-paw-go/model"
+	"github.com/IsraelTeo/api-paw-go/payload"
 	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
