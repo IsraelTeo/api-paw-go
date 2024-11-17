@@ -1,4 +1,4 @@
-module github.com/IsraelTeo/api-paw
+module github.com/IsraelTeo/api-paw-go
 
 go 1.22.6
 
