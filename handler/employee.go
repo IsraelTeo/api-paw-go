@@ -14,6 +14,16 @@ import (
 	"gorm.io/gorm"
 )
 
+// GetEmployeeById maneja la solicitud HTTP GET para obtener un empleado por su ID.
+// @Description Obtiene un empleado especificado por su ID.
+// @Accept json
+// @Produce json
+// @Param id path int true "ID del empleado"
+// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=model.Employee} "Empleado encontrado"
+// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
+// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Empleado no encontrado"
+// @Failure 405 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
+// @Router /api/v1/employee/{id} [get]
 func GetEmployeeById(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		response := payload.NewResponse(payload.MessageTypeError, "Invalid Method", nil)
@@ -34,6 +44,16 @@ func GetEmployeeById(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
+// GetAllEmployees maneja la solicitud HTTP GET para obtener todos los empleados.
+// @Description Obtiene una lista con todos los empleados registrados en el sistema.
+// @Accept json
+// @Produce json
+// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=[]model.Employee} "Empleados encontrados"
+// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
+// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Empleados no encontrados"
+// @Failure 405 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
+// @Failure 204 {object} payload.Response{MessageType=string, Message=string} "Lista de empleados vacía"
+// @Router /api/v1/employees [get]
 func GetAllEmployees(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		response := payload.NewResponse(payload.MessageTypeError, "Method get not permit", nil)
@@ -59,6 +79,16 @@ func GetAllEmployees(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
+// SaveEmployee maneja la solicitud HTTP POST para registrar un nuevo empleado.
+// @Description Crea un nuevo empleado en el sistema.
+// @Accept json
+// @Produce json
+// @Param employee body model.Employee true "Nuevo empleado"
+// @Success 201 {object} payload.Response{MessageType=string, Message=string} "Empleado creado exitosamente"
+// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "Solicitud incorrecta o JSON inválido"
+// @Failure 409 {object} payload.Response{MessageType=string, Message=string} "DNI, Email o Número de teléfono ya existen"
+// @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
+// @Router /api/v1/employee [post]
 func SaveEmployee(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		response := payload.NewResponse(payload.MessageTypeError, "Method post not permit", nil)
@@ -110,7 +140,7 @@ func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	idStr := params["id"]
-	id, err := strconv.Atoi(idStr) // Convertir `id` a uint
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Invalid ID format", nil)
 		payload.ResponseJSON(w, http.StatusBadRequest, response)
@@ -118,7 +148,6 @@ func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Buscar el empleado en la base de datos
 	employee := model.Employee{}
 	if err := db.GDB.First(&employee, uint(id)).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -155,7 +184,7 @@ func DeleteEmployee(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	idStr := params["id"]
-	id, err := strconv.Atoi(idStr) // Convertir `id` a uint
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Invalid ID format", nil)
 		payload.ResponseJSON(w, http.StatusBadRequest, response)
@@ -163,7 +192,6 @@ func DeleteEmployee(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Buscar el empleado en la base de datos
 	employee := model.Employee{}
 	if err := db.GDB.First(&employee, uint(id)).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

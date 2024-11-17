@@ -14,6 +14,16 @@ import (
 	"gorm.io/gorm"
 )
 
+// GetCustomerById maneja la solicitud HTTP GET para obtener un cliente por su ID.
+// @Description Obtiene un cliente especificado por su ID, incluyendo la información de sus mascotas asociadas.
+// @Accept json
+// @Produce json
+// @Param id path int true "ID del cliente"
+// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=model.Customer} "Cliente encontrado"
+// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
+// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Cliente no encontrado"
+// @Failure 405 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
+// @Router /api/v1/customer/{id} [get]
 func GetCustomerById(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		response := payload.NewResponse(payload.MessageTypeError, "Invalid Method", nil)
@@ -34,6 +44,16 @@ func GetCustomerById(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
+// GetAllCustomers maneja la solicitud HTTP GET para obtener todos los clientes.
+// @Description Obtiene una lista de todos los clientes registrados, incluyendo la información de sus mascotas asociadas.
+// @Accept json
+// @Produce json
+// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=[]model.Customer} "Clientes encontrados"
+// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
+// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Clientes no encontrados"
+// @Failure 405 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
+// @Failure 204 {object} payload.Response{MessageType=string, Message=string} "Lista de clientes vacía"
+// @Router /api/v1/customers [get]
 func GetAllCustomers(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		response := payload.NewResponse(payload.MessageTypeError, "Method get not permit", nil)
@@ -58,6 +78,16 @@ func GetAllCustomers(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
+// SaveCustomer maneja la solicitud HTTP POST para registrar un nuevo cliente.
+// @Description Crea un nuevo cliente en el sistema.
+// @Accept json
+// @Produce json
+// @Param customer body model.Customer true "Nuevo cliente"
+// @Success 201 {object} payload.Response{MessageType=string, Message=string} "Cliente creado exitosamente"
+// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "Solicitud incorrecta o JSON inválido"
+// @Failure 409 {object} payload.Response{MessageType=string, Message=string} "Email ya está en uso"
+// @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
+// @Router /api/v1/customer [post]
 func SaveCustomer(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		response := payload.NewResponse(payload.MessageTypeError, "Method post not permit", nil)
@@ -88,6 +118,17 @@ func SaveCustomer(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusCreated, response)
 }
 
+// UpdateCustomer maneja la solicitud HTTP PUT para actualizar un cliente existente.
+// @Description Actualiza los datos de un cliente en el sistema.
+// @Accept json
+// @Produce json
+// @Param id path int true "ID del cliente"
+// @Param customer body model.Customer true "Cliente actualizado"
+// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=model.Customer} "Cliente actualizado"
+// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "ID inválido o formato incorrecto"
+// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Cliente no encontrado"
+// @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
+// @Router /api/v1/customer/{id} [put]
 func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		response := payload.NewResponse(payload.MessageTypeError, "Method put not permit", nil)
@@ -131,6 +172,16 @@ func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
+// DeleteCustomer maneja la solicitud HTTP DELETE para eliminar un cliente por su ID.
+// @Description Elimina un cliente especificado por su ID, y también elimina sus mascotas asociadas.
+// @Accept json
+// @Produce json
+// @Param id path int true "ID del cliente"
+// @Success 200 {object} payload.Response{MessageType=string, Message=string} "Cliente eliminado"
+// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "ID inválido"
+// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Cliente no encontrado"
+// @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
+// @Router /api/v1/customer/{id} [delete]
 func DeleteCustomer(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		response := payload.NewResponse(payload.MessageTypeError, "Method delete not permit", nil)

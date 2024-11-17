@@ -42,8 +42,8 @@ func Init() *mux.Router {
 
 	api := routes.PathPrefix("/api/v1").Subrouter()
 
-	api.HandleFunc(userIDPath, middelware.Log(handler.GetUserById)).Methods("GET")
-	api.HandleFunc(usersPath, middelware.Log(handler.GetAllUsers)).Methods("GET")
+	api.HandleFunc(userIDPath, middelware.ValidateJWTAdmin(middelware.Log(handler.GetUserById))).Methods("GET")
+	api.HandleFunc(usersPath, middelware.ValidateJWTAdmin(middelware.Log(handler.GetAllUsers))).Methods("GET")
 	api.HandleFunc(userIDPath, middelware.Log(handler.UpdateUser)).Methods("PUT")
 	api.HandleFunc(userIDPath, middelware.Log(handler.DeleteUser)).Methods("DELETE")
 

@@ -14,18 +14,16 @@ import (
 	"gorm.io/gorm"
 )
 
-// GetEmployeeTypeById godoc
-// @Summary Get an employee type by ID
-// @Description Get details of an employee type by its ID
-// @Tags EmployeeTypes
-// @Accept  json
-// @Produce  json
-// @Param id path int true "Employee Type ID"
-// @Success 200 {object} payload.Response{data=model.EmployeeType} "Employee Type found"
-// @Failure 400 {object} payload.Response "Invalid ID format"
-// @Failure 404 {object} payload.Response "Employee Type not found"
-// @Failure 405 {object} payload.Response "Method not allowed"
-// @Router /type/{id} [get]
+// GetEmployeeTypeById maneja la solicitud HTTP GET para obtener un tipo de empleado por su ID.
+// @Description Devuelve un tipo de empleado especificado por su ID.
+// @Accept json
+// @Produce json
+// @Param id path int true "ID del tipo de empleado"
+// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=model.EmployeeType} "Tipo de empleado encontrado"
+// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
+// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Tipo de empleado no encontrado"
+// @Failure 405 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
+// @Router /api/v1/type/{id} [get]
 func GetEmployeeTypeById(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		response := payload.NewResponse(payload.MessageTypeError, "Invalid Method", nil)
@@ -46,16 +44,6 @@ func GetEmployeeTypeById(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
-// GetAllEmployeeTypes godoc
-// @Summary Get all employee types
-// @Description Get a list of all employee types
-// @Tags EmployeeTypes
-// @Accept  json
-// @Produce  json
-// @Success 200 {object} payload.Response{data=[]model.EmployeeType} "Employee Types found"
-// @Failure 204 {object} payload.Response "Employee Types List empty"
-// @Failure 405 {object} payload.Response "Method not allowed"
-// @Router /types [get]
 func GetAllEmployeeTypes(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		response := payload.NewResponse(payload.MessageTypeError, "Method get not permit", nil)
@@ -80,19 +68,15 @@ func GetAllEmployeeTypes(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusNoContent, response)
 }
 
-// SaveEmployeeType godoc
-// @Summary Create a new employee type
-// @Description Save a new employee type
-// @Tags EmployeeTypes
-// @Accept  json
-// @Produce  json
-// @Param body body model.EmployeeType true "Employee Type data"
-// @Success 201 {object} payload.Response "Employee Type created successfully"
-// @Failure 400 {object} payload.Response "Bad request: invalid JSON data"
-// @Failure 409 {object} payload.Response "Employee Type already exists"
-// @Failure 405 {object} payload.Response "Method not allowed"
-// @Failure 500 {object} payload.Response "Internal Server Error"
-// @Router /type [post]
+// GetAllEmployeeTypes maneja la solicitud HTTP GET para obtener todos los tipos de empleados.
+// @Description Devuelve todos los tipos de empleados registrados en el sistema.
+// @Accept json
+// @Produce json
+// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=[]model.EmployeeType} "Tipos de empleados encontrados"
+// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Tipos de empleados no encontrados"
+// @Failure 405 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
+// @Failure 204 {object} payload.Response{MessageType=string, Message=string} "Lista de tipos de empleados vacía"
+// @Router /api/v1/type [get]
 func SaveEmployeeType(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		response := payload.NewResponse(payload.MessageTypeError, "Method post not permit", nil)
@@ -123,20 +107,16 @@ func SaveEmployeeType(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusCreated, response)
 }
 
-// UpdateEmployeeType godoc
-// @Summary Update an existing employee type
-// @Description Update the details of an existing employee type
-// @Tags EmployeeTypes
-// @Accept  json
-// @Produce  json
-// @Param id path int true "Employee Type ID"
-// @Param body body model.EmployeeType true "Updated Employee Type data"
-// @Success 200 {object} payload.Response{data=model.EmployeeType} "Employee Type updated successfully"
-// @Failure 400 {object} payload.Response "Invalid ID format"
-// @Failure 404 {object} payload.Response "Employee Type not found"
-// @Failure 405 {object} payload.Response "Method not allowed"
-// @Failure 500 {object} payload.Response "Internal Server Error"
-// @Router /type/{id} [put]
+// SaveEmployeeType maneja la solicitud HTTP POST para guardar un nuevo tipo de empleado.
+// @Description Registra un nuevo tipo de empleado en el sistema.
+// @Accept json
+// @Produce json
+// @Param employeeType body model.EmployeeType true "Nuevo tipo de empleado"
+// @Success 201 {object} payload.Response{MessageType=string, Message=string} "Tipo de empleado creado exitosamente"
+// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "Solicitud incorrecta o JSON inválido"
+// @Failure 409 {object} payload.Response{MessageType=string, Message=string} "El tipo de empleado ya existe"
+// @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
+// @Router /api/v1/type/{1} [post]
 func UpdateEmployeeType(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		response := payload.NewResponse(payload.MessageTypeError, "Method put not permit", nil)
@@ -146,7 +126,7 @@ func UpdateEmployeeType(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	idStr := params["id"]
-	id, err := strconv.Atoi(idStr) // Convertir `id` a uint
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Invalid ID format", nil)
 		payload.ResponseJSON(w, http.StatusBadRequest, response)
@@ -174,19 +154,17 @@ func UpdateEmployeeType(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
-// DeleteEmployeeType godoc
-// @Summary Delete an employee type by ID
-// @Description Delete an employee type from the system by its ID
-// @Tags EmployeeTypes
-// @Accept  json
-// @Produce  json
-// @Param id path int true "Employee Type ID"
-// @Success 200 {object} payload.Response "Employee Type deleted successfully"
-// @Failure 400 {object} payload.Response "Invalid ID format"
-// @Failure 404 {object} payload.Response "Employee Type not found"
-// @Failure 405 {object} payload.Response "Method not allowed"
-// @Failure 500 {object} payload.Response "Internal Server Error"
-// @Router /type/{id} [delete]
+// UpdateEmployeeType maneja la solicitud HTTP PUT para actualizar un tipo de empleado existente.
+// @Description Actualiza un tipo de empleado existente por su ID.
+// @Accept json
+// @Produce json
+// @Param id path int true "ID del tipo de empleado"
+// @Param employeeType body model.EmployeeType true "Tipo de empleado actualizado"
+// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=model.EmployeeType} "Tipo de empleado actualizado"
+// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "ID inválido o formato incorrecto"
+// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Tipo de empleado no encontrado"
+// @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
+// @Router /api/v1/type/{id} [put]
 func DeleteEmployeeType(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		response := payload.NewResponse(payload.MessageTypeError, "Method delete not permit", nil)
@@ -196,7 +174,7 @@ func DeleteEmployeeType(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	idStr := params["id"]
-	id, err := strconv.Atoi(idStr) // Convertir `id` a uint
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Invalid ID format", nil)
 		payload.ResponseJSON(w, http.StatusBadRequest, response)

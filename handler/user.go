@@ -15,6 +15,16 @@ import (
 	"gorm.io/gorm"
 )
 
+// GetUserById maneja la solicitud HTTP GET para obtener un usuario por su ID.
+// @Description Devuelve un usuario especificado por su ID.
+// @Accept json
+// @Produce json
+// @Param id path int true "ID del usuario"
+// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=model.User} "Usuario encontrado"
+// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
+// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Usuario no encontrado"
+// @Failure 405 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
+// @Router /users/{id} [get]
 func GetUserById(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		response := payload.NewResponse(payload.MessageTypeError, "Invalid Method", nil)
@@ -35,6 +45,15 @@ func GetUserById(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
+// GetAllUsers maneja la solicitud HTTP GET para obtener todos los usuarios.
+// @Description Devuelve todos los usuarios registrados en el sistema.
+// @Accept json
+// @Produce json
+// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=[]model.User} "Usuarios encontrados"
+// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Usuarios no encontrados"
+// @Failure 405 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
+// @Failure 204 {object} payload.Response{MessageType=string, Message=string} "Lista de usuarios vacía"
+// @Router /users [get]
 func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		response := payload.NewResponse(payload.MessageTypeError, "Method get not permit", nil)
@@ -56,9 +75,19 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := payload.NewResponse(payload.MessageTypeSuccess, "Users found", users)
-	payload.ResponseJSON(w, http.StatusNoContent, response)
+	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
+// RegisterUser maneja la solicitud HTTP POST para registrar un nuevo usuario.
+// @Description Registra un nuevo usuario en el sistema.
+// @Accept json
+// @Produce json
+// @Param user body model.User true "Nuevo usuario"
+// @Success 201 {object} payload.Response{MessageType=string, Message=string} "Usuario creado exitosamente"
+// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "Solicitud incorrecta o JSON inválido"
+// @Failure 409 {object} payload.Response{MessageType=string, Message=string} "Correo electrónico ya en uso"
+// @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
+// @Router /users [post]
 func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		response := payload.NewResponse(payload.MessageTypeError, "Method post not permit", nil)
@@ -103,6 +132,17 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusCreated, response)
 }
 
+// UpdateUser maneja la solicitud HTTP PUT para actualizar la información de un usuario.
+// @Description Actualiza la información de un usuario existente por su ID.
+// @Accept json
+// @Produce json
+// @Param id path int true "ID del usuario"
+// @Param user body model.User true "Nuevo usuario con datos actualizados"
+// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=model.User} "Usuario actualizado"
+// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "ID inválido o formato incorrecto"
+// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Usuario no encontrado"
+// @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
+// @Router /users/{id} [put]
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		response := payload.NewResponse(payload.MessageTypeError, "Method put not permit", nil)
@@ -112,7 +152,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	idStr := params["id"]
-	id, err := strconv.Atoi(idStr) // Convertir `id` a uint
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Invalid ID format", nil)
 		payload.ResponseJSON(w, http.StatusBadRequest, response)
@@ -140,6 +180,16 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
+// DeleteUser maneja la solicitud HTTP DELETE para eliminar un usuario por su ID.
+// @Description Elimina un usuario especificado por su ID.
+// @Accept json
+// @Produce json
+// @Param id path int true "ID del usuario"
+// @Success 200 {object} payload.Response{MessageType=string, Message=string} "Usuario eliminado"
+// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "ID inválido"
+// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Usuario no encontrado"
+// @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
+// @Router /users/{id} [delete]
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		response := payload.NewResponse(payload.MessageTypeError, "Method delete not permit", nil)
