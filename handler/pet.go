@@ -10,20 +10,11 @@ import (
 	"github.com/IsraelTeo/api-paw-go/db"
 	"github.com/IsraelTeo/api-paw-go/model"
 	"github.com/IsraelTeo/api-paw-go/payload"
+	"github.com/IsraelTeo/api-paw-go/service"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
 )
 
-// GetPetById maneja la solicitud HTTP GET para obtener una mascota por su ID.
-// @Description Devuelve una mascota especificada por su ID.
-// @Accept json
-// @Produce json
-// @Param id path int true "ID de la mascota"
-// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=model.Pet} "Mascota encontrada"
-// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
-// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Mascota no encontrada"
-// @Failure 405 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
-// @Router /api/v1/pet/{id} [get]
 func GetPetById(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		response := payload.NewResponse(payload.MessageTypeError, "Invalid Method", nil)
@@ -44,15 +35,6 @@ func GetPetById(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
-// GetAllPets maneja la solicitud HTTP GET para obtener todas las mascotas registradas.
-// @Description Devuelve una lista con todas las mascotas en el sistema.
-// @Accept json
-// @Produce json
-// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=[]model.Pet} "Mascotas encontradas"
-// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Mascotas no encontradas"
-// @Failure 405 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
-// @Failure 204 {object} payload.Response{MessageType=string, Message=string} "Lista de mascotas vacía"
-// @Router /api/v1/pets [get]
 func GetAllPets(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		response := payload.NewResponse(payload.MessageTypeError, "Method get not permit", nil)
@@ -67,7 +49,8 @@ func GetAllPets(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(pets) == 0 {
+	empty := service.VerifyListEmpty(pets)
+	if empty {
 		response := payload.NewResponse(payload.MessageTypeSuccess, "Pets List empty", nil)
 		payload.ResponseJSON(w, http.StatusNoContent, response)
 		return
@@ -77,15 +60,6 @@ func GetAllPets(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
-// SavePet maneja la solicitud HTTP POST para guardar una nueva mascota.
-// @Description Registra una nueva mascota en el sistema.
-// @Accept json
-// @Produce json
-// @Param pet body model.Pet true "Nueva mascota"
-// @Success 201 {object} payload.Response{MessageType=string, Message=string} "Mascota creada exitosamente"
-// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "Solicitud incorrecta o JSON inválido"
-// @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
-// @Router /api/v1/pet [post]
 func SavePet(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		response := payload.NewResponse(payload.MessageTypeError, "Method post not permit", nil)
@@ -110,17 +84,6 @@ func SavePet(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusCreated, response)
 }
 
-// UpdatePet maneja la solicitud HTTP PUT para actualizar una mascota existente.
-// @Description Actualiza una mascota existente por su ID.
-// @Accept json
-// @Produce json
-// @Param id path int true "ID de la mascota"
-// @Param pet body model.Pet true "Mascota actualizada"
-// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=model.Pet} "Mascota actualizada"
-// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "ID inválido o formato incorrecto"
-// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Mascota no encontrada"
-// @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
-// @Router /api/v1/pet/{id} [put]
 func UpdatePet(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		response := payload.NewResponse(payload.MessageTypeError, "Method put not permit", nil)
@@ -146,7 +109,6 @@ func UpdatePet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Buscar el pet en la base de datos
 	pet := model.Pet{}
 	if err := db.GDB.First(&pet, uint(id)).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -162,14 +124,13 @@ func UpdatePet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Actualizar los campos del pet con los datos proporcionados
 	pet.Name = input.Name
 	pet.Specie = input.Specie
 	pet.Gender = input.Gender
 	pet.Race = input.Race
 	pet.Age = input.Age
 	pet.Weight = input.Weight
-	pet.CustomerID = input.CustomerID // Si quieres permitir la actualización del CustomerID
+	pet.CustomerID = input.CustomerID
 
 	// Guardar el pet actualizado en la base de datos
 	if err := db.GDB.Save(&pet).Error; err != nil {
@@ -179,21 +140,10 @@ func UpdatePet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Responder con el pet actualizado
 	response := payload.NewResponse(payload.MessageTypeSuccess, "Pet updated successfully", pet)
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
-// DeletePet maneja la solicitud HTTP DELETE para eliminar una mascota por su ID.
-// @Description Elimina una mascota especificada por su ID.
-// @Accept json
-// @Produce json
-// @Param id path int true "ID de la mascota"
-// @Success 200 {object} payload.Response{MessageType=string, Message=string} "Mascota eliminada"
-// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "ID inválido"
-// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Mascota no encontrada"
-// @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
-// @Router /api/v1/pet/{id} [delete]
 func DeletePet(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		response := payload.NewResponse(payload.MessageTypeError, "Method delete not permit", nil)

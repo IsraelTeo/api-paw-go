@@ -10,6 +10,7 @@ import (
 	"github.com/IsraelTeo/api-paw-go/db"
 	"github.com/IsraelTeo/api-paw-go/model"
 	"github.com/IsraelTeo/api-paw-go/payload"
+	"github.com/IsraelTeo/api-paw-go/service"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
 )
@@ -91,8 +92,12 @@ func SaveEmployeeType(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := db.GDB.Where("name = ?", role.Name).First(&role).Error; err == nil {
-		response := payload.NewResponse(payload.MessageTypeError, "Employee Type already exists", nil)
+	if exists, err := service.ValidateUniqueField("name", role.Name, &model.EmployeeType{}); err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Internal server error", nil)
+		payload.ResponseJSON(w, http.StatusInternalServerError, response)
+		return
+	} else if exists {
+		response := payload.NewResponse(payload.MessageTypeError, "Employee type already exists", nil)
 		payload.ResponseJSON(w, http.StatusConflict, response)
 		return
 	}
@@ -107,16 +112,6 @@ func SaveEmployeeType(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusCreated, response)
 }
 
-// SaveEmployeeType maneja la solicitud HTTP POST para guardar un nuevo tipo de empleado.
-// @Description Registra un nuevo tipo de empleado en el sistema.
-// @Accept json
-// @Produce json
-// @Param employeeType body model.EmployeeType true "Nuevo tipo de empleado"
-// @Success 201 {object} payload.Response{MessageType=string, Message=string} "Tipo de empleado creado exitosamente"
-// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "Solicitud incorrecta o JSON inválido"
-// @Failure 409 {object} payload.Response{MessageType=string, Message=string} "El tipo de empleado ya existe"
-// @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
-// @Router /api/v1/type/{1} [post]
 func UpdateEmployeeType(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		response := payload.NewResponse(payload.MessageTypeError, "Method put not permit", nil)
@@ -164,17 +159,6 @@ func UpdateEmployeeType(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
-// UpdateEmployeeType maneja la solicitud HTTP PUT para actualizar un tipo de empleado existente.
-// @Description Actualiza un tipo de empleado existente por su ID.
-// @Accept json
-// @Produce json
-// @Param id path int true "ID del tipo de empleado"
-// @Param employeeType body model.EmployeeType true "Tipo de empleado actualizado"
-// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=model.EmployeeType} "Tipo de empleado actualizado"
-// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "ID inválido o formato incorrecto"
-// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Tipo de empleado no encontrado"
-// @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
-// @Router /api/v1/type/{id} [put]
 func DeleteEmployeeType(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		response := payload.NewResponse(payload.MessageTypeError, "Method delete not permit", nil)

@@ -10,20 +10,11 @@ import (
 	"github.com/IsraelTeo/api-paw-go/db"
 	"github.com/IsraelTeo/api-paw-go/model"
 	"github.com/IsraelTeo/api-paw-go/payload"
+	"github.com/IsraelTeo/api-paw-go/service"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
 )
 
-// GetEmployeeById maneja la solicitud HTTP GET para obtener un empleado por su ID.
-// @Description Obtiene un empleado especificado por su ID.
-// @Accept json
-// @Produce json
-// @Param id path int true "ID del empleado"
-// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=model.Employee} "Empleado encontrado"
-// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
-// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Empleado no encontrado"
-// @Failure 405 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
-// @Router /api/v1/employee/{id} [get]
 func GetEmployeeById(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		response := payload.NewResponse(payload.MessageTypeError, "Invalid Method", nil)
@@ -44,16 +35,6 @@ func GetEmployeeById(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
-// GetAllEmployees maneja la solicitud HTTP GET para obtener todos los empleados.
-// @Description Obtiene una lista con todos los empleados registrados en el sistema.
-// @Accept json
-// @Produce json
-// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=[]model.Employee} "Empleados encontrados"
-// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
-// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Empleados no encontrados"
-// @Failure 405 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
-// @Failure 204 {object} payload.Response{MessageType=string, Message=string} "Lista de empleados vacía"
-// @Router /api/v1/employees [get]
 func GetAllEmployees(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		response := payload.NewResponse(payload.MessageTypeError, "Method get not permit", nil)
@@ -79,16 +60,6 @@ func GetAllEmployees(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
-// SaveEmployee maneja la solicitud HTTP POST para registrar un nuevo empleado.
-// @Description Crea un nuevo empleado en el sistema.
-// @Accept json
-// @Produce json
-// @Param employee body model.Employee true "Nuevo empleado"
-// @Success 201 {object} payload.Response{MessageType=string, Message=string} "Empleado creado exitosamente"
-// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "Solicitud incorrecta o JSON inválido"
-// @Failure 409 {object} payload.Response{MessageType=string, Message=string} "DNI, Email o Número de teléfono ya existen"
-// @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
-// @Router /api/v1/employee [post]
 func SaveEmployee(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		response := payload.NewResponse(payload.MessageTypeError, "Method post not permit", nil)
@@ -103,19 +74,34 @@ func SaveEmployee(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := db.GDB.Where("dni = ?", employee.Email).First(&employee).Error; err == nil {
+	// Validar que el DNI no esté repetido
+	if exists, err := service.ValidateUniqueField("dni", employee.DNI, &model.Employee{}); err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Internal server error.", nil)
+		payload.ResponseJSON(w, http.StatusInternalServerError, response)
+		return
+	} else if exists {
 		response := payload.NewResponse(payload.MessageTypeError, "DNI already exists", nil)
 		payload.ResponseJSON(w, http.StatusConflict, response)
 		return
 	}
 
-	if err := db.GDB.Where("email = ?", employee.Email).First(&employee).Error; err == nil {
-		response := payload.NewResponse(payload.MessageTypeError, "Email already in use", nil)
+	// Validar que el Email no esté repetido
+	if exists, err := service.ValidateUniqueField("email", employee.Email, &model.Employee{}); err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Internal server error", nil)
+		payload.ResponseJSON(w, http.StatusInternalServerError, response)
+		return
+	} else if exists {
+		response := payload.NewResponse(payload.MessageTypeError, "Email already exists", nil)
 		payload.ResponseJSON(w, http.StatusConflict, response)
 		return
 	}
 
-	if err := db.GDB.Where("phone_number = ?", employee.Email).First(&employee).Error; err == nil {
+	// Validar que el PhoneNumber no esté repetido
+	if exists, err := service.ValidateUniqueField("phone_number", employee.PhoneNumber, &model.Employee{}); err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Internal server error", nil)
+		payload.ResponseJSON(w, http.StatusInternalServerError, response)
+		return
+	} else if exists {
 		response := payload.NewResponse(payload.MessageTypeError, "Phone number already exists", nil)
 		payload.ResponseJSON(w, http.StatusConflict, response)
 		return
@@ -131,17 +117,6 @@ func SaveEmployee(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusCreated, response)
 }
 
-// UpdateEmployee maneja la solicitud HTTP PUT para actualizar un empleado existente.
-// @Description Actualiza los datos de un empleado existente en el sistema.
-// @Accept json
-// @Produce json
-// @Param id path int true "ID del empleado"
-// @Param employee body model.Employee true "Empleado actualizado"
-// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=model.Employee} "Empleado actualizado"
-// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "ID inválido o formato incorrecto"
-// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Empleado no encontrado"
-// @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
-// @Router /ai/v1/employee/{id} [put]
 func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 	// Verificar que el método sea PUT
 	if r.Method != http.MethodPut {
@@ -177,10 +152,7 @@ func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Decodificar solo los campos que queremos actualizar
 	var input model.Employee
-
-	// Decodificar el cuerpo de la solicitud en la estructura input
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Bad request", nil)
 		payload.ResponseJSON(w, http.StatusBadRequest, response)
@@ -197,7 +169,6 @@ func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 	employee.Email = input.Email
 	employee.TypeID = input.TypeID
 
-	// Guardar el empleado actualizado en la base de datos
 	if err := db.GDB.Save(&employee).Error; err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Error saving employee", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
@@ -205,21 +176,10 @@ func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Responder con el empleado actualizado
 	response := payload.NewResponse(payload.MessageTypeSuccess, "Employee updated successfully", employee)
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
-// DeleteEmployee maneja la solicitud HTTP DELETE para eliminar un empleado por su ID.
-// @Description Elimina un empleado especificado por su ID.
-// @Accept json
-// @Produce json
-// @Param id path int true "ID del empleado"
-// @Success 200 {object} payload.Response{MessageType=string, Message=string} "Empleado eliminado"
-// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "ID inválido"
-// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Empleado no encontrado"
-// @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
-// @Router /api/v1/employee/{id} [delete]
 func DeleteEmployee(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		response := payload.NewResponse(payload.MessageTypeError, "Method delete not permit", nil)
