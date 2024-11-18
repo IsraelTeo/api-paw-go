@@ -160,6 +160,14 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var input model.User
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Invalid request body", nil)
+		payload.ResponseJSON(w, http.StatusBadRequest, response)
+		log.Printf("error decoding request body: %v", err)
+		return
+	}
+
 	user := model.User{}
 	if err := db.GDB.First(&user, uint(id)).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -175,8 +183,16 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db.GDB.Save(&user)
-	response := payload.NewResponse(payload.MessageTypeSuccess, "User updated successfull", user)
+	user.Email = input.Email
+	user.Password = input.Password
+	if err := db.GDB.Save(&user).Error; err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Error saving user", nil)
+		payload.ResponseJSON(w, http.StatusInternalServerError, response)
+		log.Printf("error saving user: %v", err)
+		return
+	}
+
+	response := payload.NewResponse(payload.MessageTypeSuccess, "User updated successfully", user)
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 

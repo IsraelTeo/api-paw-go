@@ -143,12 +143,14 @@ func SaveEmployee(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno del servidor"
 // @Router /ai/v1/employee/{id} [put]
 func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
+	// Verificar que el método sea PUT
 	if r.Method != http.MethodPut {
-		response := payload.NewResponse(payload.MessageTypeError, "Method put not permit", nil)
+		response := payload.NewResponse(payload.MessageTypeError, "Method PUT not allowed", nil)
 		payload.ResponseJSON(w, http.StatusMethodNotAllowed, response)
 		return
 	}
 
+	// Obtener el ID del parámetro en la URL
 	params := mux.Vars(r)
 	idStr := params["id"]
 	id, err := strconv.Atoi(idStr)
@@ -159,6 +161,7 @@ func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Buscar el empleado en la base de datos
 	employee := model.Employee{}
 	if err := db.GDB.First(&employee, uint(id)).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -174,15 +177,36 @@ func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&employee); err != nil {
+	// Decodificar solo los campos que queremos actualizar
+	var input model.Employee
+
+	// Decodificar el cuerpo de la solicitud en la estructura input
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Bad request", nil)
 		payload.ResponseJSON(w, http.StatusBadRequest, response)
 		log.Printf("bad request %v:", err)
 		return
 	}
 
-	db.GDB.Save(&employee)
-	response := payload.NewResponse(payload.MessageTypeSuccess, "Employee updated successfull", employee)
+	employee.FirstName = input.FirstName
+	employee.LastName = input.LastName
+	employee.BirthDate = input.BirthDate
+	employee.DNI = input.DNI
+	employee.Direction = input.Direction
+	employee.PhoneNumber = input.PhoneNumber
+	employee.Email = input.Email
+	employee.TypeID = input.TypeID
+
+	// Guardar el empleado actualizado en la base de datos
+	if err := db.GDB.Save(&employee).Error; err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Error saving employee", nil)
+		payload.ResponseJSON(w, http.StatusInternalServerError, response)
+		log.Printf("error saving employee: %v", err)
+		return
+	}
+
+	// Responder con el empleado actualizado
+	response := payload.NewResponse(payload.MessageTypeSuccess, "Employee updated successfully", employee)
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 

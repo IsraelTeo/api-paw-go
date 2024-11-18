@@ -74,7 +74,7 @@ func GetAllPets(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := payload.NewResponse(payload.MessageTypeSuccess, "Pets found", pets)
-	payload.ResponseJSON(w, http.StatusNoContent, response)
+	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
 // SavePet maneja la solicitud HTTP POST para guardar una nueva mascota.
@@ -138,6 +138,15 @@ func UpdatePet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var input model.Pet
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Invalid request body", nil)
+		payload.ResponseJSON(w, http.StatusBadRequest, response)
+		log.Printf("error decoding request body: %v", err)
+		return
+	}
+
+	// Buscar el pet en la base de datos
 	pet := model.Pet{}
 	if err := db.GDB.First(&pet, uint(id)).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -153,8 +162,25 @@ func UpdatePet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db.GDB.Save(&pet)
-	response := payload.NewResponse(payload.MessageTypeSuccess, "Pet updated successfull", pet)
+	// Actualizar los campos del pet con los datos proporcionados
+	pet.Name = input.Name
+	pet.Specie = input.Specie
+	pet.Gender = input.Gender
+	pet.Race = input.Race
+	pet.Age = input.Age
+	pet.Weight = input.Weight
+	pet.CustomerID = input.CustomerID // Si quieres permitir la actualización del CustomerID
+
+	// Guardar el pet actualizado en la base de datos
+	if err := db.GDB.Save(&pet).Error; err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Error saving pet", nil)
+		payload.ResponseJSON(w, http.StatusInternalServerError, response)
+		log.Printf("error saving pet: %v", err)
+		return
+	}
+
+	// Responder con el pet actualizado
+	response := payload.NewResponse(payload.MessageTypeSuccess, "Pet updated successfully", pet)
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 

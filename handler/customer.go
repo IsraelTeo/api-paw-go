@@ -161,9 +161,29 @@ func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&customer); err != nil {
+	// Decodificar solo los campos que queremos actualizar
+	var input model.Customer
+
+	// Decodificar el cuerpo de la solicitud en la estructura input
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Bad request", nil)
 		payload.ResponseJSON(w, http.StatusBadRequest, response)
+		log.Printf("bad request %v:", err)
+		return
+	}
+
+	customer.FirstName = input.FirstName
+	customer.LastName = input.LastName
+	customer.DNI = input.DNI
+	customer.Email = input.Email
+	customer.PhoneNumber = input.PhoneNumber
+	customer.Pets = input.Pets
+
+	// Guardar el empleado actualizado en la base de datos
+	if err := db.GDB.Save(&customer).Error; err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Error saving employee", nil)
+		payload.ResponseJSON(w, http.StatusInternalServerError, response)
+		log.Printf("error saving employee: %v", err)
 		return
 	}
 

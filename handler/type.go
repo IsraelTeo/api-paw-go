@@ -65,7 +65,7 @@ func GetAllEmployeeTypes(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := payload.NewResponse(payload.MessageTypeSuccess, "Employee Types found", roles)
-	payload.ResponseJSON(w, http.StatusNoContent, response)
+	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
 // GetAllEmployeeTypes maneja la solicitud HTTP GET para obtener todos los tipos de empleados.
@@ -148,6 +148,16 @@ func UpdateEmployeeType(w http.ResponseWriter, r *http.Request) {
 		log.Printf("database error: %v", err)
 		return
 	}
+
+	var input model.EmployeeType
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Invalid request body", nil)
+		payload.ResponseJSON(w, http.StatusBadRequest, response)
+		log.Printf("error decoding request body: %v", err)
+		return
+	}
+
+	employeeType.Name = input.Name
 
 	db.GDB.Save(&employeeType)
 	response := payload.NewResponse(payload.MessageTypeSuccess, "EmployeeType updated successfull", employeeType)
