@@ -15,16 +15,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// GetEmployeeTypeById maneja la solicitud HTTP GET para obtener un tipo de empleado por su ID.
-// @Description Devuelve un tipo de empleado especificado por su ID.
-// @Accept json
-// @Produce json
-// @Param id path int true "ID del tipo de empleado"
-// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=model.EmployeeType} "Tipo de empleado encontrado"
-// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
-// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Tipo de empleado no encontrado"
-// @Failure 405 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
-// @Router /api/v1/type/{id} [get]
 func GetEmployeeTypeById(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		response := payload.NewResponse(payload.MessageTypeError, "Invalid Method", nil)
@@ -59,7 +49,8 @@ func GetAllEmployeeTypes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(roles) == 0 {
+	empty := service.VerifyListEmpty(roles)
+	if empty {
 		response := payload.NewResponse(payload.MessageTypeSuccess, "Employee Types List empty", nil)
 		payload.ResponseJSON(w, http.StatusNoContent, response)
 		return
@@ -69,15 +60,6 @@ func GetAllEmployeeTypes(w http.ResponseWriter, r *http.Request) {
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
 
-// GetAllEmployeeTypes maneja la solicitud HTTP GET para obtener todos los tipos de empleados.
-// @Description Devuelve todos los tipos de empleados registrados en el sistema.
-// @Accept json
-// @Produce json
-// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=[]model.EmployeeType} "Tipos de empleados encontrados"
-// @Failure 404 {object} payload.Response{MessageType=string, Message=string} "Tipos de empleados no encontrados"
-// @Failure 405 {object} payload.Response{MessageType=string, Message=string} "Método no permitido"
-// @Failure 204 {object} payload.Response{MessageType=string, Message=string} "Lista de tipos de empleados vacía"
-// @Router /api/v1/type [get]
 func SaveEmployeeType(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		response := payload.NewResponse(payload.MessageTypeError, "Method post not permit", nil)
@@ -88,6 +70,13 @@ func SaveEmployeeType(w http.ResponseWriter, r *http.Request) {
 	role := model.EmployeeType{}
 	if err := json.NewDecoder(r.Body).Decode(&role); err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Bad request: invalid JSON data", nil)
+		payload.ResponseJSON(w, http.StatusBadRequest, response)
+		return
+	}
+
+	if err := service.ValidateEntity(&role); err != nil {
+		log.Printf("validation error: %v", err)
+		response := payload.NewResponse(payload.MessageTypeError, "Bad request.", nil)
 		payload.ResponseJSON(w, http.StatusBadRequest, response)
 		return
 	}
@@ -149,6 +138,13 @@ func UpdateEmployeeType(w http.ResponseWriter, r *http.Request) {
 		response := payload.NewResponse(payload.MessageTypeError, "Invalid request body", nil)
 		payload.ResponseJSON(w, http.StatusBadRequest, response)
 		log.Printf("error decoding request body: %v", err)
+		return
+	}
+
+	if err := service.ValidateEntity(&employeeType); err != nil {
+		log.Printf("validation error: %v", err)
+		response := payload.NewResponse(payload.MessageTypeError, "Bad request", nil)
+		payload.ResponseJSON(w, http.StatusBadRequest, response)
 		return
 	}
 

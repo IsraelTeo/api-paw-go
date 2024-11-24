@@ -6,12 +6,15 @@ import (
 
 	"github.com/IsraelTeo/api-paw-go/db"
 	"github.com/IsraelTeo/api-paw-go/route"
+	"github.com/IsraelTeo/api-paw-go/service"
 	"github.com/joho/godotenv"
 )
 
 func main() {
 
 	r := route.Init()
+
+	service.InitValidator()
 
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loanding .env main")

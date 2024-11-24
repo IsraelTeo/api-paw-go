@@ -74,6 +74,12 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := service.ValidateEntity(&user); err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Internal server error", nil)
+		payload.ResponseJSON(w, http.StatusInternalServerError, response)
+		return
+	}
+
 	if exists, err := service.ValidateUniqueField("email", user.Email, &model.User{}); err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Internal server error", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
@@ -127,14 +133,6 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var input model.User
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		response := payload.NewResponse(payload.MessageTypeError, "Invalid request body", nil)
-		payload.ResponseJSON(w, http.StatusBadRequest, response)
-		log.Printf("error decoding request body: %v", err)
-		return
-	}
-
 	user := model.User{}
 	if err := db.GDB.First(&user, uint(id)).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -147,6 +145,21 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		response := payload.NewResponse(payload.MessageTypeError, "Database error", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
 		log.Printf("database error: %v", err)
+		return
+	}
+
+	var input model.User
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Invalid request body", nil)
+		payload.ResponseJSON(w, http.StatusBadRequest, response)
+		log.Printf("error decoding request body: %v", err)
+		return
+	}
+
+	if err := service.ValidateEntity(&user); err != nil {
+		log.Printf("validation error: %v", err)
+		response := payload.NewResponse(payload.MessageTypeError, "Bad request.", nil)
+		payload.ResponseJSON(w, http.StatusBadRequest, response)
 		return
 	}
 

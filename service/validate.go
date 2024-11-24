@@ -4,8 +4,21 @@ import (
 	"errors"
 
 	"github.com/IsraelTeo/api-paw-go/db"
+	"github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
 )
+
+var validate *validator.Validate
+
+func InitValidator() {
+	if validate == nil {
+		validate = validator.New()
+	}
+}
+
+func ValidateEntity[T any](model *T) error {
+	return validate.Struct(model)
+}
 
 func VerifyListEmpty[T any](list []T) bool {
 	return len(list) == 0

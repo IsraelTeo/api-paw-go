@@ -74,6 +74,13 @@ func SaveCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := service.ValidateEntity(&customer); err != nil {
+		log.Printf("validation error: %v", err)
+		response := payload.NewResponse(payload.MessageTypeError, "Bad request.", nil)
+		payload.ResponseJSON(w, http.StatusBadRequest, response)
+		return
+	}
+
 	if exists, err := service.ValidateUniqueField("email", customer.Email, &model.Customer{}); err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Internal server error", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
@@ -134,20 +141,27 @@ func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := service.ValidateEntity(&customer); err != nil {
+		log.Printf("validation error: %v", err)
+		response := payload.NewResponse(payload.MessageTypeError, "Bad request", nil)
+		payload.ResponseJSON(w, http.StatusBadRequest, response)
+		return
+	}
+
 	customer.FirstName = input.FirstName
 	customer.LastName = input.LastName
 	customer.DNI = input.DNI
 	customer.Email = input.Email
 	customer.PhoneNumber = input.PhoneNumber
 	customer.Pets = input.Pets
+
 	if err := db.GDB.Save(&customer).Error; err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Error saving employee", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
 		log.Printf("error saving employee: %v", err)
 		return
-	}
 
-	db.GDB.Save(&customer)
+	}
 	response := payload.NewResponse(payload.MessageTypeSuccess, "Customer updated successfull", customer)
 	payload.ResponseJSON(w, http.StatusOK, response)
 }

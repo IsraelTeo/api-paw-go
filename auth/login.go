@@ -22,16 +22,6 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-// Login maneja la solicitud HTTP POST para autenticar a un usuario y generar un token JWT.
-// @Description Autentica al usuario con sus credenciales (correo electrónico y contraseña). Si las credenciales son válidas, genera un token JWT.
-// @Accept json
-// @Produce json
-// @Param credentials body Credentials true "Credenciales del usuario"
-// @Success 200 {object} payload.Response{MessageType=string, Message=string, Data=map[string]interface{}} "Inicio de sesión exitoso"
-// @Failure 400 {object} payload.Response{MessageType=string, Message=string} "Solicitud incorrecta (JSON inválido)"
-// @Failure 401 {object} payload.Response{MessageType=string, Message=string} "Correo electrónico o contraseña inválidos"
-// @Failure 500 {object} payload.Response{MessageType=string, Message=string} "Error interno al generar el token"
-// @Router /auth/login [post]
 func Login(w http.ResponseWriter, r *http.Request) {
 	var credentials Credentials
 	if err := json.NewDecoder(r.Body).Decode(&credentials); err != nil {

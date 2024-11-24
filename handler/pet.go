@@ -74,6 +74,13 @@ func SavePet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := service.ValidateEntity(&pet); err != nil {
+		log.Printf("validation error: %v", err)
+		response := payload.NewResponse(payload.MessageTypeError, "Bad request", nil)
+		payload.ResponseJSON(w, http.StatusBadRequest, response)
+		return
+	}
+
 	if result := db.GDB.Create(&pet); result.Error != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Internal Server Error", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
@@ -124,6 +131,13 @@ func UpdatePet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := service.ValidateEntity(&pet); err != nil {
+		log.Printf("validation error: %v", err)
+		response := payload.NewResponse(payload.MessageTypeError, "Bad request", nil)
+		payload.ResponseJSON(w, http.StatusBadRequest, response)
+		return
+	}
+
 	pet.Name = input.Name
 	pet.Specie = input.Specie
 	pet.Gender = input.Gender
@@ -132,7 +146,6 @@ func UpdatePet(w http.ResponseWriter, r *http.Request) {
 	pet.Weight = input.Weight
 	pet.CustomerID = input.CustomerID
 
-	// Guardar el pet actualizado en la base de datos
 	if err := db.GDB.Save(&pet).Error; err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Error saving pet", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)

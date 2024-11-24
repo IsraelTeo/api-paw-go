@@ -50,7 +50,8 @@ func GetAllEmployees(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(employees) == 0 {
+	empty := service.VerifyListEmpty(employees)
+	if empty {
 		response := payload.NewResponse(payload.MessageTypeSuccess, "Employees List empty", nil)
 		payload.ResponseJSON(w, http.StatusNoContent, response)
 		return
@@ -74,7 +75,13 @@ func SaveEmployee(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validar que el DNI no esté repetido
+	if err := service.ValidateEntity(&employee); err != nil {
+		log.Printf("validation error: %v", err)
+		response := payload.NewResponse(payload.MessageTypeError, "Bad request.", nil)
+		payload.ResponseJSON(w, http.StatusBadRequest, response)
+		return
+	}
+
 	if exists, err := service.ValidateUniqueField("dni", employee.DNI, &model.Employee{}); err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Internal server error.", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
@@ -85,7 +92,6 @@ func SaveEmployee(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validar que el Email no esté repetido
 	if exists, err := service.ValidateUniqueField("email", employee.Email, &model.Employee{}); err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Internal server error", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
@@ -96,7 +102,6 @@ func SaveEmployee(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validar que el PhoneNumber no esté repetido
 	if exists, err := service.ValidateUniqueField("phone_number", employee.PhoneNumber, &model.Employee{}); err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Internal server error", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
@@ -118,14 +123,12 @@ func SaveEmployee(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
-	// Verificar que el método sea PUT
 	if r.Method != http.MethodPut {
 		response := payload.NewResponse(payload.MessageTypeError, "Method PUT not allowed", nil)
 		payload.ResponseJSON(w, http.StatusMethodNotAllowed, response)
 		return
 	}
 
-	// Obtener el ID del parámetro en la URL
 	params := mux.Vars(r)
 	idStr := params["id"]
 	id, err := strconv.Atoi(idStr)
@@ -136,7 +139,6 @@ func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Buscar el empleado en la base de datos
 	employee := model.Employee{}
 	if err := db.GDB.First(&employee, uint(id)).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -157,6 +159,13 @@ func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 		response := payload.NewResponse(payload.MessageTypeError, "Bad request", nil)
 		payload.ResponseJSON(w, http.StatusBadRequest, response)
 		log.Printf("bad request %v:", err)
+		return
+	}
+
+	if err := service.ValidateEntity(&employee); err != nil {
+		log.Printf("validation error: %v", err)
+		response := payload.NewResponse(payload.MessageTypeError, "Bad request", nil)
+		payload.ResponseJSON(w, http.StatusBadRequest, response)
 		return
 	}
 
