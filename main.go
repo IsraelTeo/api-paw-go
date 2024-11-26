@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/IsraelTeo/api-paw-go/config"
 	"github.com/IsraelTeo/api-paw-go/db"
 	"github.com/IsraelTeo/api-paw-go/route"
 	"github.com/IsraelTeo/api-paw-go/service"
@@ -31,7 +32,7 @@ func main() {
 
 	log.Println("Starting server on port 8080...")
 
-	if err := http.ListenAndServe(":8080", r); err != nil {
+	if err := http.ListenAndServe(":8080", config.CorsMiddleware(r)); err != nil {
 		log.Fatalf("Error starting server: %v", err)
 	}
 }
