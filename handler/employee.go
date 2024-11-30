@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/IsraelTeo/api-paw-go/db"
 	"github.com/IsraelTeo/api-paw-go/model"
@@ -75,11 +76,13 @@ func SaveEmployee(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := service.ValidateBirthDate(employee.BirthDate); err != nil {
-		response := payload.NewResponse(payload.MessageTypeError, err.Error(), nil)
+	parsedDate, err := time.Parse("2006-01-02", employee.BirthDateRaw)
+	if err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Invalid date format, expected YYYY-MM-DD", nil)
 		payload.ResponseJSON(w, http.StatusBadRequest, response)
 		return
 	}
+	employee.BirthDate = parsedDate
 
 	if err := service.ValidateEntity(&employee); err != nil {
 		log.Printf("validation error: %v", err)

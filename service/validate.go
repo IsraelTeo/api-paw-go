@@ -2,8 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
-	"time"
 
 	"github.com/IsraelTeo/api-paw-go/db"
 	"github.com/go-playground/validator/v10"
@@ -46,12 +44,4 @@ func ValidateUniqueField[T any](field, value string, model *T) (bool, error) {
 
 func IsEmpty(s string) bool {
 	return s == ""
-}
-
-func ValidateBirthDate(birthDate string) error {
-	_, err := time.Parse("2006-01-02", birthDate)
-	if err != nil {
-		return fmt.Errorf("invalid date format, expected YYYY-MM-DD")
-	}
-	return nil
 }
