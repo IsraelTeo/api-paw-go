@@ -75,6 +75,12 @@ func SaveEmployee(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := service.ValidateBirthDate(employee.BirthDate); err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, err.Error(), nil)
+		payload.ResponseJSON(w, http.StatusBadRequest, response)
+		return
+	}
+
 	if err := service.ValidateEntity(&employee); err != nil {
 		log.Printf("validation error: %v", err)
 		response := payload.NewResponse(payload.MessageTypeError, "Bad request.", nil)
