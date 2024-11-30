@@ -3,7 +3,6 @@ package service
 import (
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/IsraelTeo/api-paw-go/db"
@@ -49,11 +48,9 @@ func IsEmpty(s string) bool {
 	return s == ""
 }
 
-func ValidateBirthDate(birthDate time.Time) error {
-	formattedDate := birthDate.Format("2006-01-02")
-	_, err := time.Parse("2006-01-02", formattedDate)
+func ValidateBirthDate(birthDate string) error {
+	_, err := time.Parse("2006-01-02", birthDate)
 	if err != nil {
-		log.Printf("Invalid date format: %v", err)
 		return fmt.Errorf("invalid date format, expected YYYY-MM-DD")
 	}
 	return nil
