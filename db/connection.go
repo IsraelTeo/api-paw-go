@@ -12,18 +12,19 @@ import (
 var GDB *gorm.DB
 
 func Connection() error {
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
 	dbName := os.Getenv("DB_NAME")
 
-	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPassword, dbHost, dbPort, dbName)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPassword, dbHost, dbPort, dbName)
 
 	var err error
-	if GDB, err = gorm.Open(mysql.Open(connectionString), &gorm.Config{}); err != nil {
+	if GDB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{}); err != nil {
 		return err
 	}
+
 	return nil
 }
 
