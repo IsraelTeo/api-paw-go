@@ -144,7 +144,6 @@ func UpdatePet(w http.ResponseWriter, r *http.Request) {
 	pet.Race = input.Race
 	pet.Age = input.Age
 	pet.Weight = input.Weight
-	pet.CustomerID = input.CustomerID
 
 	if err := db.GDB.Save(&pet).Error; err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Error saving pet", nil)
