@@ -25,17 +25,11 @@ func GetCustomerById(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 	customer := model.Customer{}
-	if err := db.GDB.Preload("Pets").First(&customer, id).Error; err != nil {
+	if err := db.GDB.Preload("pet_ids").First(&customer, id).Error; err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Customer was not found", nil)
 		payload.ResponseJSON(w, http.StatusNotFound, response)
 		return
 	}
-
-	var petIDs []uint
-	for _, pet := range customer.Pets {
-		petIDs = append(petIDs, pet.ID)
-	}
-	customer.PetIDs = petIDs
 
 	response := payload.NewResponse(payload.MessageTypeSuccess, "Customer found", customer)
 	payload.ResponseJSON(w, http.StatusOK, response)
@@ -49,7 +43,7 @@ func GetAllCustomers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var customers []model.Customer
-	if err := db.GDB.Preload("Pets").Find(&customers).Error; err != nil {
+	if err := db.GDB.Preload("pet_ids").Find(&customers).Error; err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Customer was not found", nil)
 		payload.ResponseJSON(w, http.StatusNotFound, response)
 		return
@@ -60,14 +54,6 @@ func GetAllCustomers(w http.ResponseWriter, r *http.Request) {
 		response := payload.NewResponse(payload.MessageTypeSuccess, "Customers List empty", nil)
 		payload.ResponseJSON(w, http.StatusNoContent, response)
 		return
-	}
-
-	for i := range customers {
-		var petIDs []uint
-		for _, pet := range customers[i].Pets {
-			petIDs = append(petIDs, pet.ID)
-		}
-		customers[i].PetIDs = petIDs
 	}
 
 	response := payload.NewResponse(payload.MessageTypeSuccess, "Customers found", customers)
