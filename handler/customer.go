@@ -31,6 +31,12 @@ func GetCustomerById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var petIDs []uint
+	for _, pet := range customer.Pets {
+		petIDs = append(petIDs, pet.ID)
+	}
+	customer.PetIDs = petIDs
+
 	response := payload.NewResponse(payload.MessageTypeSuccess, "Customer found", customer)
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
@@ -54,6 +60,14 @@ func GetAllCustomers(w http.ResponseWriter, r *http.Request) {
 		response := payload.NewResponse(payload.MessageTypeSuccess, "Customers List empty", nil)
 		payload.ResponseJSON(w, http.StatusNoContent, response)
 		return
+	}
+
+	for i := range customers {
+		var petIDs []uint
+		for _, pet := range customers[i].Pets {
+			petIDs = append(petIDs, pet.ID)
+		}
+		customers[i].PetIDs = petIDs
 	}
 
 	response := payload.NewResponse(payload.MessageTypeSuccess, "Customers found", customers)
