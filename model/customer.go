@@ -10,5 +10,5 @@ type Customer struct {
 	Email       string `json:"email" gorm:"size:100;unique;not null"`
 	PhoneNumber string `json:"phone_number" gorm:"unique;size:15"`
 	Pets        []Pet  `json:"-" gorm:"constraint:OnDelete:CASCADE;foreignKey:CustomerID"`
-	PetIDs      []uint `json:"pets" gorm:"-"`
+	PetIDs      []uint `json:"pet_ids" gorm:"-"`
 }
