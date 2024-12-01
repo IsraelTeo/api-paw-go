@@ -10,5 +10,5 @@ type Pet struct {
 	Race       string  `json:"race" gorm:"size:50"`
 	Age        uint    `json:"age"`
 	Weight     float64 `json:"weight"`
-	CustomerID uint    `json:"-" gorm:"not null"`
+	CustomerID uint    `json:"-"`
 }
