@@ -171,7 +171,7 @@ func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := service.ValidateEntity(&employee); err != nil {
+	if err := service.ValidateEntity(&input); err != nil {
 		log.Printf("validation error: %v", err)
 		response := payload.NewResponse(payload.MessageTypeError, "Bad request", nil)
 		payload.ResponseJSON(w, http.StatusBadRequest, response)
@@ -185,11 +185,12 @@ func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 	employee.Direction = input.Direction
 	employee.PhoneNumber = input.PhoneNumber
 	employee.Email = input.Email
+	employee.TypeID = input.TypeID
 
-	if err := db.GDB.Preload("EmployeeType ").First(&employee, uint(employee.ID)).Error; err != nil {
-		response := payload.NewResponse(payload.MessageTypeError, "Error loading pet data", nil)
+	if err := db.GDB.Preload("Type").First(&employee, uint(employee.ID)).Error; err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Error loading employee data", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
-		log.Printf("error loading pet data: %v", err)
+		log.Printf("error loading employee data: %v", err)
 		return
 	}
 
