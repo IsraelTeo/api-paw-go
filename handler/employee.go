@@ -195,7 +195,7 @@ func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := db.GDB.Preload("EmployeeType").First(&employee, uint(employee.ID)).Error; err != nil {
-		response := payload.NewResponse(payload.MessageTypeError, "Error loading employee data", nil)
+		response := payload.NewResponse(payload.MessageTypeError, "Error loading type employee data", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
 		log.Printf("error loading employee data: %v", err)
 		return
