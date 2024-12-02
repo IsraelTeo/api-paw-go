@@ -180,24 +180,24 @@ func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 
 	employee.FirstName = input.FirstName
 	employee.LastName = input.LastName
-	employee.BirthDate = input.BirthDate
 	employee.DNI = input.DNI
-	employee.Direction = input.Direction
-	employee.PhoneNumber = input.PhoneNumber
 	employee.Email = input.Email
+	employee.PhoneNumber = input.PhoneNumber
+	employee.Direction = input.Direction
 	employee.TypeID = input.TypeID
+	employee.BirthDateRaw = input.BirthDateRaw
 
 	if err := db.GDB.Save(&employee).Error; err != nil {
+		log.Printf("Error updating employee: %v", err)
 		response := payload.NewResponse(payload.MessageTypeError, "Error updating employee", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
-		log.Printf("error updating employee: %v", err)
 		return
 	}
 
 	if err := db.GDB.Preload("EmployeeType").First(&employee, uint(employee.ID)).Error; err != nil {
+		log.Printf("Error loading employee type: %v", err)
 		response := payload.NewResponse(payload.MessageTypeError, "Error loading type employee data", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
-		log.Printf("error loading employee data: %v", err)
 		return
 	}
 
