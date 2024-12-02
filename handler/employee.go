@@ -186,10 +186,10 @@ func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 	employee.PhoneNumber = input.PhoneNumber
 	employee.Email = input.Email
 
-	if err := db.GDB.Save(&employee).Error; err != nil {
-		response := payload.NewResponse(payload.MessageTypeError, "Error saving employee", nil)
+	if err := db.GDB.Preload("EmployeeType ").First(&employee, uint(employee.ID)).Error; err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Error loading pet data", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
-		log.Printf("error saving employee: %v", err)
+		log.Printf("error loading pet data: %v", err)
 		return
 	}
 
