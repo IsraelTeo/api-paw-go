@@ -25,7 +25,7 @@ func GetCustomerById(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 	customer := model.Customer{}
-	if err := db.GDB.Preload("pet_ids").First(&customer, id).Error; err != nil {
+	if err := db.GDB.Preload("Pet").First(&customer, id).Error; err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Customer was not found", nil)
 		payload.ResponseJSON(w, http.StatusNotFound, response)
 		return
