@@ -10,5 +10,5 @@ type Customer struct {
 	Email       string `json:"email" gorm:"size:100;unique;not null"`
 	PhoneNumber string `json:"phone_number" gorm:"unique;size:15"`
 	PetID       uint   `json:"pet_id" gorm:"index" validate:"required"`
-	Pet         Pet    `json:"-" gorm:"foreignKey:PetID;constraint:OnDelete:CASCADE"`
+	Pet         Pet    `json:"pet" gorm:"foreignKey:PetID;constraint:OnDelete:CASCADE"`
 }
