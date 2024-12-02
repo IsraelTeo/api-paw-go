@@ -26,7 +26,7 @@ func GetEmployeeById(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 	employee := model.Employee{}
-	if err := db.GDB.First(&employee, id).Error; err != nil {
+	if err := db.GDB.Preload("EmployeeType").First(&employee, id).Error; err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Employee was not found", nil)
 		payload.ResponseJSON(w, http.StatusNotFound, response)
 		return
@@ -44,7 +44,7 @@ func GetAllEmployees(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var employees []model.Employee
-	if err := db.GDB.Find(&employees).Error; err != nil {
+	if err := db.GDB.Preload("EmployeeType").Find(&employees).Error; err != nil {
 		log.Printf("employees list not found %v:", err)
 		response := payload.NewResponse(payload.MessageTypeError, "Employees not found", nil)
 		payload.ResponseJSON(w, http.StatusNotFound, response)

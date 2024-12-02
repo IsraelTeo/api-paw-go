@@ -25,7 +25,7 @@ func GetCustomerById(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 	customer := model.Customer{}
-	if err := db.GDB.Preload("PetIDs").First(&customer, id).Error; err != nil {
+	if err := db.GDB.Preload("pet_ids").First(&customer, id).Error; err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Customer was not found", nil)
 		payload.ResponseJSON(w, http.StatusNotFound, response)
 		return
@@ -43,7 +43,7 @@ func GetAllCustomers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var customers []model.Customer
-	if err := db.GDB.Preload("PetIDs").Find(&customers).Error; err != nil {
+	if err := db.GDB.Preload("Pet").Find(&customers).Error; err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Customers was not found", nil)
 		payload.ResponseJSON(w, http.StatusNotFound, response)
 		return
@@ -153,7 +153,6 @@ func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 	customer.DNI = input.DNI
 	customer.Email = input.Email
 	customer.PhoneNumber = input.PhoneNumber
-	customer.Pets = input.Pets
 
 	if err := db.GDB.Save(&customer).Error; err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Error saving employee", nil)
@@ -198,14 +197,23 @@ func DeleteCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := db.GDB.Where("customer_id = ?", customer.ID).Delete(&model.Pet{}).Error; err != nil {
-		response := payload.NewResponse(payload.MessageTypeError, "Failed to delete associated pets", nil)
+	if customer.PetID != 0 {
+		pet := model.Pet{}
+		if err := db.GDB.Delete(&pet, customer.PetID).Error; err != nil {
+			response := payload.NewResponse(payload.MessageTypeError, "Error deleting pet", nil)
+			payload.ResponseJSON(w, http.StatusInternalServerError, response)
+			log.Printf("error deleting pet: %v", err)
+			return
+		}
+	}
+
+	if err := db.GDB.Delete(&customer).Error; err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Error deleting customer", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
-		log.Printf("failed to delete associated pets: %v", err)
+		log.Printf("error deleting customer: %v", err)
 		return
 	}
 
-	db.GDB.Delete(&customer)
 	response := payload.NewResponse(payload.MessageTypeSuccess, "Customer deleted successfull", nil)
 	payload.ResponseJSON(w, http.StatusOK, response)
 }

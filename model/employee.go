@@ -16,6 +16,6 @@ type Employee struct {
 	Direction    string       `json:"direction" gorm:"size:100" validate:"required,max=100"`
 	BirthDate    time.Time    `json:"-" gorm:"not null"`
 	BirthDateRaw string       `json:"birth_date" validate:"required"`
-	TypeID       uint         `json:"type_id" gorm:"not null;index" validate:"required"`
-	Type         EmployeeType `json:"type" gorm:"foreignKey:TypeID"`
+	TypeID       uint         `json:"type_id" gorm:"index" validate:"required"`
+	EmployeeType EmployeeType `json:"employee_type" gorm:"foreignKey:TypeID"`
 }
