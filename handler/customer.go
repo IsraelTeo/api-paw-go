@@ -119,7 +119,7 @@ func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	customer := model.Customer{}
-	if err := db.GDB.Preload("pet_id").First(&customer, uint(id)).Error; err != nil {
+	if err := db.GDB.Preload("Pet").First(&customer, uint(id)).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response := payload.NewResponse(payload.MessageTypeError, "Customer not found", nil)
 			payload.ResponseJSON(w, http.StatusNotFound, response)
@@ -154,13 +154,13 @@ func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 	customer.Email = input.Email
 	customer.PhoneNumber = input.PhoneNumber
 
-	if err := db.GDB.Save(&customer).Error; err != nil {
-		response := payload.NewResponse(payload.MessageTypeError, "Error saving employee", nil)
+	if err := db.GDB.Preload("Pet").First(&customer, uint(customer.ID)).Error; err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Error loading pet data", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
-		log.Printf("error saving employee: %v", err)
+		log.Printf("error loading pet data: %v", err)
 		return
-
 	}
+
 	response := payload.NewResponse(payload.MessageTypeSuccess, "Customer updated successfull", customer)
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
