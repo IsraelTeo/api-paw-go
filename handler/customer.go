@@ -161,6 +161,13 @@ func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := db.GDB.Save(&customer).Error; err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Error updating employee", nil)
+		payload.ResponseJSON(w, http.StatusInternalServerError, response)
+		log.Printf("error updating employee: %v", err)
+		return
+	}
+
 	response := payload.NewResponse(payload.MessageTypeSuccess, "Customer updated successfull", customer)
 	payload.ResponseJSON(w, http.StatusOK, response)
 }

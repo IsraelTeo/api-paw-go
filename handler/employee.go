@@ -194,6 +194,13 @@ func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := db.GDB.Save(&employee).Error; err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Error updating employee", nil)
+		payload.ResponseJSON(w, http.StatusInternalServerError, response)
+		log.Printf("error updating employee: %v", err)
+		return
+	}
+
 	response := payload.NewResponse(payload.MessageTypeSuccess, "Employee updated successfully", employee)
 	payload.ResponseJSON(w, http.StatusOK, response)
 }
