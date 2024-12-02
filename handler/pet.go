@@ -82,6 +82,7 @@ func SavePet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if result := db.GDB.Create(&pet); result.Error != nil {
+		log.Printf("error creating pet: %v", result.Error)
 		response := payload.NewResponse(payload.MessageTypeError, "Internal Server Error", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
 		return
