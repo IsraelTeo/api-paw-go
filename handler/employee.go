@@ -187,17 +187,17 @@ func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 	employee.Email = input.Email
 	employee.TypeID = input.TypeID
 
-	if err := db.GDB.Preload("Type").First(&employee, uint(employee.ID)).Error; err != nil {
-		response := payload.NewResponse(payload.MessageTypeError, "Error loading employee data", nil)
-		payload.ResponseJSON(w, http.StatusInternalServerError, response)
-		log.Printf("error loading employee data: %v", err)
-		return
-	}
-
 	if err := db.GDB.Save(&employee).Error; err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Error updating employee", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
 		log.Printf("error updating employee: %v", err)
+		return
+	}
+
+	if err := db.GDB.Preload("EmployeeType").First(&employee, uint(employee.ID)).Error; err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Error loading employee data", nil)
+		payload.ResponseJSON(w, http.StatusInternalServerError, response)
+		log.Printf("error loading employee data: %v", err)
 		return
 	}
 

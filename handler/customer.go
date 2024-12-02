@@ -154,17 +154,17 @@ func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 	customer.Email = input.Email
 	customer.PhoneNumber = input.PhoneNumber
 
-	if err := db.GDB.Preload("Pet").First(&customer, uint(customer.ID)).Error; err != nil {
-		response := payload.NewResponse(payload.MessageTypeError, "Error loading pet data", nil)
-		payload.ResponseJSON(w, http.StatusInternalServerError, response)
-		log.Printf("error loading pet data: %v", err)
-		return
-	}
-
 	if err := db.GDB.Save(&customer).Error; err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Error updating employee", nil)
 		payload.ResponseJSON(w, http.StatusInternalServerError, response)
 		log.Printf("error updating employee: %v", err)
+		return
+	}
+
+	if err := db.GDB.Preload("Pet").First(&customer, uint(customer.ID)).Error; err != nil {
+		response := payload.NewResponse(payload.MessageTypeError, "Error loading pet data", nil)
+		payload.ResponseJSON(w, http.StatusInternalServerError, response)
+		log.Printf("error loading pet data: %v", err)
 		return
 	}
 
