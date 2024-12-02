@@ -44,7 +44,7 @@ func GetAllCustomers(w http.ResponseWriter, r *http.Request) {
 
 	var customers []model.Customer
 	if err := db.GDB.Preload("Pet").Find(&customers).Error; err != nil {
-		response := payload.NewResponse(payload.MessageTypeError, "Customers was not found", nil)
+		response := payload.NewResponse(payload.MessageTypeError, "Customers were not found", nil)
 		payload.ResponseJSON(w, http.StatusNotFound, response)
 		return
 	}
