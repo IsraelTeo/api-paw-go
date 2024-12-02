@@ -185,7 +185,6 @@ func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 	employee.Direction = input.Direction
 	employee.PhoneNumber = input.PhoneNumber
 	employee.Email = input.Email
-	employee.TypeID = input.TypeID
 
 	if err := db.GDB.Save(&employee).Error; err != nil {
 		response := payload.NewResponse(payload.MessageTypeError, "Error saving employee", nil)
